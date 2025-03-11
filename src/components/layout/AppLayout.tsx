@@ -50,7 +50,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 </div>
               ) : (
                 <div className="flex items-center px-4 w-full ml-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 ml-2">
                     <Box size={20} className="text-primary" />
                   </div>
                   <span className="ml-2 font-semibold text-sidebar-foreground">MyApp</span>
