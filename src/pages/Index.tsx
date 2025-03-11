@@ -37,7 +37,7 @@ const Index = () => {
                 Share
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 ml-2">
+            <PopoverContent className="w-80">
               <div className="space-y-2">
                 <h3 className="font-medium">Share your factory design</h3>
                 <p className="text-sm text-muted-foreground">Generate a link that allows others to view your factory design in read-only mode.</p>
