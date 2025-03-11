@@ -66,7 +66,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       style={{ maxHeight: '24px' }}
                     />
                   </div>
-                  <span className="ml-2 text-l font-bold text-[#341756]">MyApp</span>
+                  <span className="ml-2 text-xl font-bold text-[#341756]">MyApp</span>
                 </div>
               )}
             </div>
