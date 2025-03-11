@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
-import { LayoutGrid, Settings, Box, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid } from "lucide-react";
+import { LayoutGrid, Settings, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -35,7 +36,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     navigate(path);
   };
 
-  return <div className="flex h-screen w-full overflow-hidden bg-sidebar">
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-sidebar">
       <div 
         className="h-full" 
         onMouseEnter={() => setIsHovered(true)} 
@@ -45,15 +47,16 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <SidebarHeader>
             <div className="flex items-center justify-center py-4 w-full">
               {isCollapsed ? (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                    <img 
-                      src="../../assets/logo.png" 
-                      alt="Logo" 
-                      className="w-5 h-5" 
-                      style={{ maxWidth: '20px', maxHeight: '20px' }}
-                    />
-                  </div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+                  <img 
+                    src="../../assets/logo.png" 
+                    alt="Logo" 
+                    className="w-5 h-5" 
+                    style={{ maxWidth: '20px', maxHeight: '20px' }}
+                  />
+                </div>
               ) : (
+                <div className="flex items-center">
                   <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
                     <img 
                       src="../../assets/logo.png" 
@@ -79,36 +82,36 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               </SidebarItem>
               <SidebarItem 
                 icon={Grid} 
-                active={location.pathname === "/simulation"} 
-                onClick={() => handleNavigation("/simulation")}
+                active={location.pathname === "/projects"} 
+                onClick={() => handleNavigation("/projects")}
               >
                 Projects
               </SidebarItem>
               <SidebarItem 
                 icon={FileText} 
-                active={location.pathname === "/financial"} 
-                onClick={() => handleNavigation("/financial")}
+                active={location.pathname === "/documents"} 
+                onClick={() => handleNavigation("/documents")}
               >
                 Documents
               </SidebarItem>
               <SidebarItem 
                 icon={Users} 
-                active={location.pathname === "/business"} 
-                onClick={() => handleNavigation("/business")}
+                active={location.pathname === "/team"} 
+                onClick={() => handleNavigation("/team")}
               >
                 Team
               </SidebarItem>
               <SidebarItem 
                 icon={Award} 
-                active={location.pathname === "/university"} 
-                onClick={() => handleNavigation("/university")}
+                active={location.pathname === "/learning"} 
+                onClick={() => handleNavigation("/learning")}
               >
                 Learning
               </SidebarItem>
               <SidebarItem 
                 icon={Package} 
-                active={location.pathname === "/marketplace"} 
-                onClick={() => handleNavigation("/marketplace")}
+                active={location.pathname === "/resources"} 
+                onClick={() => handleNavigation("/resources")}
               >
                 Resources
               </SidebarItem>
@@ -125,7 +128,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     </div>
                     <span className="ml-2 text-sm font-medium">John Doe</span>
                   </div>
-                  <Popover className="ml-2">
+                  <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="ghost" size="icon" className="text-sidebar-foreground/70 hover:text-sidebar-foreground">
                         <ChevronsUpDown size={18} />
@@ -162,7 +165,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       <main className="flex-1 bg-background rounded-l-3xl shadow-md overflow-hidden my-4 ml-2 border border-gray-300/20 dark:border-gray-600/20">
         {children}
       </main>
-    </div>;
+    </div>
+  );
 };
 
 export default AppLayout;
