@@ -45,7 +45,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <SidebarHeader>
             <div className="flex items-center justify-center py-4 w-full">
               {isCollapsed ? (
-                <div className="flex h-8 w-8 items-center justify-center">
+                <div className="flex h-8 w-8 items-center justify-center mx-auto">
                   <Box size={20} className="text-primary" />
                 </div>
               ) : (
