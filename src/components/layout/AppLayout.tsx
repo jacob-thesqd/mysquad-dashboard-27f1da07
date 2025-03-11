@@ -44,11 +44,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       >
         <Sidebar collapsed={isCollapsed}>
           <SidebarHeader>
-            <div className="flex items-center px-4 py-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                <Box size={20} className="text-primary" />
-              </div>
-              <span className="ml-2 font-semibold text-sidebar-foreground">MyApp</span>
+            <div className="flex items-center py-4">
+              {isCollapsed ? (
+                <div className="mx-auto h-8 w-8 flex items-center justify-center">
+                  <Box size={20} className="text-primary" />
+                </div>
+              ) : (
+                <div className="flex items-center px-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+                    <Box size={20} className="text-primary" />
+                  </div>
+                  <span className="ml-2 font-semibold text-sidebar-foreground">MyApp</span>
+                </div>
+              )}
             </div>
           </SidebarHeader>
           
@@ -100,7 +108,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           </div>
           
           <SidebarFooter>
-            <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-4`}>
+            <div className={`flex items-center ${isCollapsed ? "justify-center px-0" : "justify-between px-4"} py-4`}>
               {!isCollapsed ? (
                 <>
                   <div className="flex items-center">
@@ -134,7 +142,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   </Popover>
                 </>
               ) : (
-                <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+                <div className="mx-auto h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
                   <span className="text-xs font-medium">JD</span>
                 </div>
               )}
@@ -143,7 +151,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </Sidebar>
       </div>
       
-      <main className="flex-1 bg-background rounded-l-3xl shadow-md overflow-hidden mt-4 mb-4 ml-2 border border-gray-300/20 dark:border-gray-600/20">
+      <main className="flex-1 bg-background rounded-l-3xl shadow-md overflow-hidden my-4 ml-2 border border-gray-300/20 dark:border-gray-600/20">
         {children}
       </main>
     </div>;
