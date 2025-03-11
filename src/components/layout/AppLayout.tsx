@@ -110,7 +110,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             <div className={`flex items-center ${isCollapsed ? "justify-center px-0" : "justify-between px-4"} pb-4 ml-2`}>
               {!isCollapsed ? (
                 <>
-                  <div className="flex items-center">
+                  <div className="flex items-center ml-2 mb-2">
                     <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
                       <span className="text-xs font-medium">JD</span>
                     </div>
