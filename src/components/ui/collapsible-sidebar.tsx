@@ -60,17 +60,15 @@ export function SidebarHeader({
 }: SidebarHeaderProps) {
   const { collapsed } = useSidebar();
   
-  return <div className={cn(
-    "flex h-14 items-center", 
-    collapsed ? "justify-center px-2" : "justify-between px-4", 
-    className
-  )}>
-    {collapsed ? (
-      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-        <Box size={20} className="text-primary" />
-      </div>
-    ) : children}
-  </div>;
+  return (
+    <div className={cn(
+      "flex h-14 items-center justify-center", 
+      collapsed ? "px-2" : "px-4", 
+      className
+    )}>
+      {children}
+    </div>
+  );
 }
 
 interface SidebarSectionProps {
