@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
 import { LayoutGrid, Settings, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid } from "lucide-react";
@@ -47,17 +46,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <SidebarHeader>
             <div className="flex items-center justify-center py-4 w-full">
               {isCollapsed ? (
-                <div className="flex h-10 items-center justify-center ml-2">
-                  <div className="flex h-10 items-center justify-center rounded-md bg-primary/10">
+                <div className="flex h-10 w-10 items-center justify-center ml-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
                     <img 
                       src="https://wttgwoxlezqoyzmesekt.supabase.co/storage/v1/object/public/cms-general//logo.png" 
                       alt="Logo" 
                       className="h-10" 
                       style={{ maxHeight: '24px' }}
                     />
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center px-4 w-full">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
                     <img 
                       src="https://wttgwoxlezqoyzmesekt.supabase.co/storage/v1/object/public/cms-general//logo.png" 
                       alt="Logo" 
