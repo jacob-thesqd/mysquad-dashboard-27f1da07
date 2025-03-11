@@ -63,7 +63,7 @@ export function SidebarHeader({
   return (
     <div className={cn(
       "flex h-14 items-center justify-center", 
-      collapsed ? "px-2" : "px-0", 
+      collapsed ? "px-2" : "px-0 ml-2", 
       className
     )}>
       {children}
