@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
 import { LayoutGrid, Settings, Box, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid } from "lucide-react";
@@ -44,7 +43,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       >
         <Sidebar collapsed={isCollapsed}>
           <SidebarHeader>
-            <div className="flex items-center justify-center py-4 w-full">
+            <div className="flex items-center justify-center py-4 w-full ml-2">
               {isCollapsed ? (
                 <div className="flex h-8 w-8 items-center justify-center">
                   <Box size={20} className="text-primary" />
@@ -113,17 +112,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 <>
                   <div className="flex items-center">
                     <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
-                      <span className="text-xs font-medium">JS</span>
+                      <span className="text-xs font-medium">JD</span>
                     </div>
-                    <span className="ml-2 text-sm font-medium">Jane Smith</span>
+                    <span className="ml-2 text-sm font-medium">John Doe</span>
                   </div>
-                  <Popover>
+                  <Popover className="ml-2">
                     <PopoverTrigger asChild>
                       <Button variant="ghost" size="icon" className="text-sidebar-foreground/70 hover:text-sidebar-foreground">
                         <ChevronsUpDown size={18} />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2" align="center">
+                    <PopoverContent className="w-56 p-2" align="end">
                       <div className="flex flex-col space-y-1">
                         <Button variant="ghost" className="flex items-center justify-start gap-2 w-full">
                           <Settings size={16} />
@@ -143,7 +142,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 </>
               ) : (
                 <div className="mx-auto h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
-                  <span className="text-xs font-medium">JS</span>
+                  <span className="text-xs font-medium">JD</span>
                 </div>
               )}
             </div>

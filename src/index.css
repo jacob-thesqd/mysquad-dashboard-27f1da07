@@ -111,6 +111,15 @@
   @apply bg-card rounded-xl border border-border shadow-sm p-6;
 }
 
+/* Factory editor styles */
+.factory-flow-container {
+  @apply w-full h-full overflow-hidden;
+}
+
+.factory-panel {
+  @apply h-full overflow-auto;
+}
+
 /* Main content area styling */
 .main-content {
   @apply rounded-l-3xl shadow-xl relative z-10;
@@ -125,4 +134,48 @@
 .rounded-edge {
   border-top-left-radius: 1.5rem;
   border-bottom-left-radius: 1.5rem;
+}
+
+/* Custom styles for React Flow components */
+.transit-glow-effect {
+  filter: drop-shadow(0 0 4px hsl(var(--primary)));
+}
+
+.transit-background-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.transit-particle {
+  offset-rotate: 0deg;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes edgeGlow {
+  from {
+    stroke-dashoffset: 1000;
+    opacity: 0.8;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes dashdraw {
+  from {
+    stroke-dashoffset: 10;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
