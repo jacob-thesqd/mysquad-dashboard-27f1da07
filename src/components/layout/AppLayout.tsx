@@ -98,7 +98,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
         
         <SidebarFooter>
-          <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} px-4`}>
+          <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-4`}>
             {!isCollapsed ? (
               <>
                 <div className="flex items-center">
