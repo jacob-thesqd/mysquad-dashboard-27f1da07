@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
-import { MapPin, Settings, ChevronsUpDown, GalleryVerticalEnd, Award, Package, SunMoon, LogOut,UsersRound  } from "lucide-react";
+import { MapPin, Settings, ChevronsUpDown, GalleryVerticalEnd, Award, Package, SunMoon, LogOut, SquareChartGantt, UsersRound } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
