@@ -145,8 +145,8 @@ export function SidebarFooter({
     className
   )}>
     {collapsed ? (
-      <button className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center ml-2 mb-2">
-        <span className="text-xs font-medium">MB</span>
+      <button className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+        <span className="text-xs font-medium">JS</span>
       </button>
     ) : children}
   </div>;
