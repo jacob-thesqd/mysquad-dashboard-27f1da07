@@ -47,23 +47,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <SidebarHeader>
             <div className="flex items-center justify-center py-4 w-full">
               {isCollapsed ? (
-                <div className="flex h-10 items-center justify-center">
-                  <img 
-                    src="https://wttgwoxlezqoyzmesekt.supabase.co/storage/v1/object/public/cms-general//logo.png" 
-                    alt="Logo" 
-                    className="h-8" 
-                    style={{ maxHeight: '24px' }}
-                  />
+                <div className="flex h-8 w-8 items-center justify-center ml-2">
+                  <Box size={20} className="text-primary" />
                 </div>
               ) : (
-                <div className="flex items-center">
-                  <div className="flex h-10 items-center justify-center">
-                    <img 
-                      src="https://wttgwoxlezqoyzmesekt.supabase.co/storage/v1/object/public/cms-general//logo.png" 
-                      alt="Logo" 
-                      className="h-8" 
-                      style={{ maxHeight: '24px' }}
-                    />
+                <div className="flex items-center px-4 w-full">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+                    <Box size={20} className="text-primary" />
                   </div>
                   <span className="ml-3 font-semibold text-sidebar-foreground">MyApp</span>
                 </div>
