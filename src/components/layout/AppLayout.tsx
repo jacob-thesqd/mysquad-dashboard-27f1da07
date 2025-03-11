@@ -51,12 +51,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               ) : (
                 <div className="flex items-center px-4 w-full">
                   <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                    <img 
-                      src="../../assets/logo.png" 
-                      alt="Logo" 
-                      className="w-5 h-5" 
-                      style={{ maxWidth: '20px', maxHeight: '20px' }}
-                    />
+                    <Box size={20} className="text-primary" />
                   </div>
                   <span className="ml-3 font-semibold text-sidebar-foreground">MyApp</span>
                 </div>
