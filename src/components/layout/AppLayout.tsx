@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
 import { LayoutGrid, Settings, Box, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid } from "lucide-react";
@@ -34,7 +35,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     navigate(path);
   };
 
-  return <div className="flex h-screen w-full overflow-hidden bg-sidebar">
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-sidebar">
       <div 
         className="h-full" 
         onMouseEnter={() => setIsHovered(true)} 
@@ -128,4 +130,41 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         <div className="flex flex-col space-y-1">
                           <Button variant="ghost" className="flex items-center justify-start gap-2 w-full">
                             <Settings size={16} />
-                           
+                            <span>Settings</span>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            className="flex items-center justify-start gap-2 w-full"
+                            onClick={toggleTheme}
+                          >
+                            <SunMoon size={16} />
+                            <span>Toggle theme</span>
+                          </Button>
+                          <Button variant="ghost" className="flex items-center justify-start gap-2 w-full text-red-500">
+                            <LogOut size={16} />
+                            <span>Logout</span>
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </>
+                ) : (
+                  <div className="w-16 flex justify-center">
+                    <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+                      <span className="text-xs font-medium">JD</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </SidebarFooter>
+          </div>
+        </Sidebar>
+      </div>
+      <div className="flex-1 overflow-auto">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export default AppLayout;
