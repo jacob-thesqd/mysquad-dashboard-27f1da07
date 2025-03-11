@@ -49,7 +49,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   <Box size={20} className="text-primary" />
                 </div>
               ) : (
-                <div className="flex items-center px-4 w-full">
+                <div className="flex items-center px-4 w-full ml-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
                     <Box size={20} className="text-primary" />
                   </div>
