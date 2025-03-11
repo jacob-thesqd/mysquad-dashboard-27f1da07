@@ -46,14 +46,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             <div className="flex items-center justify-center py-4 w-full">
               {isCollapsed ? (
                   <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                    <img 
-                      src="../../assets/logo.png" 
-                      alt="Logo" 
-                      className="w-5 h-5" 
-                      style={{ maxWidth: '20px', maxHeight: '20px' }}
-                    />
-                  </div>
+                  <img 
+                    src="../../assets/logo.png" 
+                    alt="Logo" 
+                    className="w-5 h-5" 
+                    style={{ maxWidth: '20px', maxHeight: '20px' }}
+                  />
+                </div>
               ) : (
+                <div className="flex items-center px-4 w-full">
                   <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
                     <img 
                       src="../../assets/logo.png" 
