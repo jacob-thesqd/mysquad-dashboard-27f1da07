@@ -39,7 +39,7 @@ export function Sidebar({
   return (
     <SidebarContext.Provider value={{ collapsed }}>
       <aside className={cn(
-        "h-screen transition-all duration-300 ease-in-out z-10 flex flex-col items-center", 
+        "h-screen transition-all duration-300 ease-in-out z-10 flex flex-col", 
         collapsed ? "w-16" : "w-64", 
         className
       )}>
