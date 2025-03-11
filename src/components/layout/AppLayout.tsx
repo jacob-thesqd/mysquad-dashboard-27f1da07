@@ -142,7 +142,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 </>
               ) : (
                 <div className="mx-auto h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center mb-2 ml-2">
-                  <span className="text-xs font-medium">JD</span>
+                  <span className="text-xs font-medium pb-2 mb-2 ml-2">JD</span>
                 </div>
               )}
             </div>
