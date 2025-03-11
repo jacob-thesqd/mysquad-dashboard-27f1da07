@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
-import { LayoutGrid, Settings, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid, Box } from "lucide-react";
+import { LayoutGrid, Settings, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -47,13 +47,23 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <SidebarHeader>
             <div className="flex items-center justify-center py-4 w-full">
               {isCollapsed ? (
-                <div className="flex h-8 w-8 items-center justify-center ml-2">
-                  <Box size={20} className="text-primary" />
+                <div className="flex h-10 items-center justify-center ml-2">
+                  <div className="flex h-10 items-center justify-center rounded-md bg-primary/10">
+                    <img 
+                      src="https://wttgwoxlezqoyzmesekt.supabase.co/storage/v1/object/public/cms-general//logo.png" 
+                      alt="Logo" 
+                      className="h-10" 
+                      style={{ maxHeight: '24px' }}
+                    />
                 </div>
               ) : (
                 <div className="flex items-center px-4 w-full">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                    <Box size={20} className="text-primary" />
+                    <img 
+                      src="https://wttgwoxlezqoyzmesekt.supabase.co/storage/v1/object/public/cms-general//logo.png" 
+                      alt="Logo" 
+                      className="h-10" 
+                      style={{ maxHeight: '24px' }}
+                    />
                   </div>
                   <span className="ml-3 font-semibold text-sidebar-foreground">MyApp</span>
                 </div>
