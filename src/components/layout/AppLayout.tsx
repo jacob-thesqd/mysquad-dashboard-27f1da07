@@ -116,7 +116,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     </div>
                     <span className="ml-2 text-sm font-medium">John Doe</span>
                   </div>
-                  <Popover>
+                  <Popover className="ml-2">
                     <PopoverTrigger asChild>
                       <Button variant="ghost" size="icon" className="text-sidebar-foreground/70 hover:text-sidebar-foreground">
                         <ChevronsUpDown size={18} />
