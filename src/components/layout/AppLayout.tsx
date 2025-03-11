@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
-import { LayoutGrid, Settings, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid } from "lucide-react";
+import { MapPin, Settings, ChevronsUpDown, GalleryVerticalEnd, GalleryVerticalEnd, Award, Package, SunMoon, LogOut, SquareChartGantt } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -66,7 +66,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       style={{ maxHeight: '24px' }}
                     />
                   </div>
-                  <span className="ml-2 font-semibold text-sidebar-foreground">MyApp</span>
+                  <span className="ml-2 font-semibold text-[#341756]">MyApp</span>
                 </div>
               )}
             </div>
@@ -75,46 +75,32 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <div className="flex flex-col h-[calc(100%-8rem)] overflow-hidden ml-2">
             <SidebarSection>
               <SidebarItem 
-                icon={LayoutGrid} 
+                icon={MapPin} 
                 active={location.pathname === "/"} 
                 onClick={() => handleNavigation("/")}
               >
                 Dashboard
               </SidebarItem>
               <SidebarItem 
-                icon={Grid} 
+                icon={SquareChartGantt} 
                 active={location.pathname === "/projects"} 
                 onClick={() => handleNavigation("/projects")}
               >
                 Projects
               </SidebarItem>
               <SidebarItem 
-                icon={FileText} 
+                icon={GalleryVerticalEnd} 
                 active={location.pathname === "/documents"} 
                 onClick={() => handleNavigation("/documents")}
               >
-                Documents
+                Files
               </SidebarItem>
               <SidebarItem 
-                icon={Users} 
+                icon={GalleryVerticalEnd} 
                 active={location.pathname === "/team"} 
                 onClick={() => handleNavigation("/team")}
               >
                 Team
-              </SidebarItem>
-              <SidebarItem 
-                icon={Award} 
-                active={location.pathname === "/learning"} 
-                onClick={() => handleNavigation("/learning")}
-              >
-                Learning
-              </SidebarItem>
-              <SidebarItem 
-                icon={Package} 
-                active={location.pathname === "/resources"} 
-                onClick={() => handleNavigation("/resources")}
-              >
-                Resources
               </SidebarItem>
             </SidebarSection>
           </div>
