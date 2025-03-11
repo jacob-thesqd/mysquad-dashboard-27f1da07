@@ -107,10 +107,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           </div>
           
           <SidebarFooter>
-            <div className={`flex items-center ${isCollapsed ? "justify-center px-0" : "justify-between px-4"} pb-4 ml-2`}>
+            <div className={`flex items-center ${isCollapsed ? "justify-center px-0" : "justify-between px-4"} py-4`}>
               {!isCollapsed ? (
                 <>
-                  <div className="flex items-center ml-2 mb-2">
+                  <div className="flex items-center">
                     <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
                       <span className="text-xs font-medium">JD</span>
                     </div>
@@ -141,7 +141,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   </Popover>
                 </>
               ) : (
-                <div className="mx-auto h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+                <div className="mx-auto h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center mb-2 ml-2">
                   <span className="text-xs font-medium">JD</span>
                 </div>
               )}
