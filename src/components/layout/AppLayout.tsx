@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
-import { LayoutGrid, Settings, Box, ChevronsUpDown, Wallet, Building, GraduationCap, Factory, SunMoon, LogOut, Store } from "lucide-react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { LayoutGrid, Settings, Box, ChevronsUpDown, FileText, Users, Award, Package, SunMoon, LogOut, Grid } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -42,11 +42,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   return <div className="flex h-screen w-full overflow-hidden bg-sidebar" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       <Sidebar collapsed={isCollapsed}>
         <SidebarHeader>
-          <div className="flex items-center p-4">
+          <div className="flex items-center px-4 py-4">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
               <Box size={20} className="text-primary" />
             </div>
-            <span className="ml-2 font-semibold text-sidebar-foreground">Factory Flow</span>
+            <span className="ml-2 font-semibold text-sidebar-foreground">MyApp</span>
           </div>
         </SidebarHeader>
         
@@ -57,77 +57,85 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               active={location.pathname === "/"} 
               onClick={() => handleNavigation("/")}
             >
-              Home
+              Dashboard
             </SidebarItem>
             <SidebarItem 
-              icon={Factory} 
+              icon={Grid} 
               active={location.pathname === "/simulation"} 
               onClick={() => handleNavigation("/simulation")}
             >
-              Simulation
+              Projects
             </SidebarItem>
             <SidebarItem 
-              icon={Wallet} 
+              icon={FileText} 
               active={location.pathname === "/financial"} 
               onClick={() => handleNavigation("/financial")}
             >
-              Financial
+              Documents
             </SidebarItem>
             <SidebarItem 
-              icon={Building} 
+              icon={Users} 
               active={location.pathname === "/business"} 
               onClick={() => handleNavigation("/business")}
             >
-              My Business
+              Team
             </SidebarItem>
             <SidebarItem 
-              icon={GraduationCap} 
+              icon={Award} 
               active={location.pathname === "/university"} 
               onClick={() => handleNavigation("/university")}
             >
-              University
+              Learning
             </SidebarItem>
             <SidebarItem 
-              icon={Store} 
+              icon={Package} 
               active={location.pathname === "/marketplace"} 
               onClick={() => handleNavigation("/marketplace")}
             >
-              Marketplace
+              Resources
             </SidebarItem>
           </SidebarSection>
         </div>
         
         <SidebarFooter>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
-                <span className="text-xs font-medium">MB</span>
-              </div>
-              <span className="ml-2 text-sm font-medium">Mark Bannert</span>
-            </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-sidebar-foreground/70 hover:text-sidebar-foreground">
-                  <ChevronsUpDown size={18} />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56 p-2" align="end">
-                <div className="flex flex-col space-y-1">
-                  <Button variant="ghost" className="flex items-center justify-start gap-2 w-full">
-                    <Settings size={16} />
-                    <span>Settings</span>
-                  </Button>
-                  <Button variant="ghost" className="flex items-center justify-start gap-2 w-full" onClick={toggleTheme}>
-                    <SunMoon size={16} />
-                    <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
-                  </Button>
-                  <Button variant="ghost" className="flex items-center justify-start gap-2 w-full text-destructive">
-                    <LogOut size={16} />
-                    <span>Log out</span>
-                  </Button>
+          <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} px-4`}>
+            {!isCollapsed ? (
+              <>
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+                    <span className="text-xs font-medium">JD</span>
+                  </div>
+                  <span className="ml-2 text-sm font-medium">John Doe</span>
                 </div>
-              </PopoverContent>
-            </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-sidebar-foreground/70 hover:text-sidebar-foreground">
+                      <ChevronsUpDown size={18} />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="end">
+                    <div className="flex flex-col space-y-1">
+                      <Button variant="ghost" className="flex items-center justify-start gap-2 w-full">
+                        <Settings size={16} />
+                        <span>Settings</span>
+                      </Button>
+                      <Button variant="ghost" className="flex items-center justify-start gap-2 w-full" onClick={toggleTheme}>
+                        <SunMoon size={16} />
+                        <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+                      </Button>
+                      <Button variant="ghost" className="flex items-center justify-start gap-2 w-full text-destructive">
+                        <LogOut size={16} />
+                        <span>Log out</span>
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </>
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+                <span className="text-xs font-medium">JD</span>
+              </div>
+            )}
           </div>
         </SidebarFooter>
       </Sidebar>
