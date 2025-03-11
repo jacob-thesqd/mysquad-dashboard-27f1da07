@@ -57,7 +57,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <div className="flex h-10">
+                  <div className="flex h-10 items-center justify-center">
                     <img 
                       src="https://wttgwoxlezqoyzmesekt.supabase.co/storage/v1/object/public/cms-general//logo.png" 
                       alt="Logo" 
