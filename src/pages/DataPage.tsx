@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -34,7 +33,6 @@ const DataPage = () => {
   const [dateFilterPopoverOpen, setDateFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<string>("active");
 
-  // Use our custom hook to fetch data
   const {
     data: activeProjects = [],
     isLoading: isActiveLoading,
@@ -43,7 +41,6 @@ const DataPage = () => {
     enabled: activeTab === "active"
   });
 
-  // Fetch master projects data using pagination
   const {
     data: masterProjects = [],
     isLoading: isMasterLoading,
@@ -52,7 +49,6 @@ const DataPage = () => {
     enabled: activeTab === "master"
   });
 
-  // Get current projects based on active tab
   const currentProjects = useMemo(() => {
     return activeTab === "active" ? activeProjects : masterProjects;
   }, [activeTab, activeProjects, masterProjects]);
@@ -60,24 +56,21 @@ const DataPage = () => {
   const isLoading = activeTab === "active" ? isActiveLoading : isMasterLoading;
   const error = activeTab === "active" ? activeError : masterError;
 
-  // Get all column names from first project
   const columns = useMemo(() => {
     if (currentProjects.length === 0) return [];
     return Object.keys(currentProjects[0]).filter(column => !HIDDEN_COLUMNS.includes(column));
   }, [currentProjects]);
 
-  // Identify number columns for slider filtering
   const numberColumns = useMemo(() => 
     columns.filter(column => 
       currentProjects.length > 0 && 
       isNumber(currentProjects[0][column]) && 
       !isArrayColumn(currentProjects, column) && 
-      column !== 'account' // Exclude 'account' column from number filters
+      column !== 'account'
     ), 
     [columns, currentProjects.length]
   );
 
-  // Identify date columns for date filtering
   const dateColumns = useMemo(() => 
     columns.filter(column => 
       currentProjects.length > 0 && 
@@ -86,7 +79,6 @@ const DataPage = () => {
     [columns, currentProjects.length]
   );
 
-  // Identify array columns for special filtering
   const arrayColumns = useMemo(() => 
     columns.filter(column => 
       currentProjects.length > 0 && 
@@ -95,7 +87,6 @@ const DataPage = () => {
     [columns, currentProjects.length]
   );
 
-  // Initialize range filters for number columns
   React.useEffect(() => {
     if (currentProjects.length > 0) {
       const initialRanges: Record<string, { min: number; max: number }> = {};
@@ -107,7 +98,6 @@ const DataPage = () => {
     }
   }, [currentProjects.length > 0, numberColumns.join(',')]);
 
-  // Filter and sort projects
   const filteredProjects = useMemo(() => 
     filterProjects(currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters),
     [currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters]
@@ -118,7 +108,6 @@ const DataPage = () => {
     [filteredProjects, sortColumn, sortDirection]
   );
 
-  // Handle sort toggle
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -128,7 +117,6 @@ const DataPage = () => {
     }
   };
 
-  // Handle filter selection changes for multiselect
   const handleFilterSelectionChange = (column: string, value: string, checked: boolean) => {
     setSelectedFilters(prev => {
       const current = prev[column] || [];
@@ -146,7 +134,6 @@ const DataPage = () => {
     });
   };
 
-  // Clear all filters for a column
   const clearColumnFilters = (column: string) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
@@ -155,12 +142,10 @@ const DataPage = () => {
     });
   };
 
-  // Get unique values for a column for filter dropdowns
   const getUniqueValues = (column: string): string[] => {
     return getUniqueColumnValues(currentProjects, column);
   };
 
-  // Handle number range filter change
   const handleRangeChange = (column: string, values: number[]) => {
     setNumberRangeFilters(prev => ({
       ...prev,
@@ -171,7 +156,6 @@ const DataPage = () => {
     }));
   };
 
-  // Apply date filter
   const applyDateFilter = (column: string, filter: DateFilter) => {
     setDateFilters(prev => ({
       ...prev,
@@ -179,7 +163,6 @@ const DataPage = () => {
     }));
   };
 
-  // Clear date filter
   const clearDateFilter = (column: string) => {
     setDateFilters(prev => {
       const newFilters = { ...prev };
@@ -188,7 +171,6 @@ const DataPage = () => {
     });
   };
 
-  // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     setSortColumn(null);

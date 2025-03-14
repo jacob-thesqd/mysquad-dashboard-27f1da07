@@ -8,7 +8,10 @@ import { toast } from "sonner";
 // Cache time in minutes
 const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 
-export function useDataFetching(queryKey: QueryKey, tableName: string, options = { enabled: true }) {
+// Define allowed table names as a type for better type safety
+type AllowedTable = "active_projects_mv" | "master_project_view_mv";
+
+export function useDataFetching(queryKey: QueryKey, tableName: AllowedTable, options = { enabled: true }) {
   const queryClient = useQueryClient();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -37,7 +40,7 @@ export function useDataFetching(queryKey: QueryKey, tableName: string, options =
       }
     },
     staleTime: CACHE_TIME, // Data considered fresh for 5 minutes
-    cacheTime: CACHE_TIME, // Keep in cache for 5 minutes
+    gcTime: CACHE_TIME,    // Keep in cache for 5 minutes (was cacheTime in v4)
     ...options
   });
 
@@ -71,7 +74,7 @@ export function useDataFetching(queryKey: QueryKey, tableName: string, options =
 }
 
 // Helper function to fetch all pages of data
-async function fetchAllPages(tableName: string): Promise<ProjectData[]> {
+async function fetchAllPages(tableName: AllowedTable): Promise<ProjectData[]> {
   const pageSize = 1000;
   let page = 0;
   let hasMore = true;
