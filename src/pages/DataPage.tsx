@@ -142,7 +142,10 @@ const DataPage = () => {
   // Identify number columns for slider filtering
   const numberColumns = useMemo(() => 
     columns.filter(column => 
-      projects.length > 0 && isNumber(projects[0][column]) && !isArrayColumn(projects, column)
+      projects.length > 0 && 
+      isNumber(projects[0][column]) && 
+      !isArrayColumn(projects, column) &&
+      column !== 'account' // Exclude 'account' column from number filters
     ), [columns, projects.length]
   );
 
@@ -312,7 +315,7 @@ const DataPage = () => {
       return formatDateValue(value);
     }
     
-    // Render account as badge
+    // Render account as badge with specific color
     if (column === 'account') {
       return <Badge variant="secondary" className="bg-purple-100 text-purple-800">{value}</Badge>;
     }
@@ -335,7 +338,7 @@ const DataPage = () => {
                     variant="outline" 
                     className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1"
                   >
-                    {String(item)}
+                    {String(item).substring(0, 10)}
                     <ExternalLink size={12} />
                   </Badge>
                 </a>
@@ -367,7 +370,7 @@ const DataPage = () => {
             variant="outline" 
             className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1"
           >
-            {String(value)}
+            {String(value).substring(0, 10)}
             <ExternalLink size={12} />
           </Badge>
         </a>
@@ -440,112 +443,62 @@ const DataPage = () => {
                                   </Badge>
                                 )}
                                 
-                                {numberColumns.includes(column) ? (
-                                  <Popover>
-                                    <PopoverTrigger>
-                                      <div className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
-                                        numberRangeFilters[column] && (
-                                          numberRangeFilters[column].min > getColumnRange(column).min || 
-                                          numberRangeFilters[column].max < getColumnRange(column).max
-                                        ) ? 'bg-blue-50 border-blue-200' : ''
-                                      }`}>
-                                        <SlidersHorizontal className="h-3 w-3" />
-                                      </div>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-64 p-4">
-                                      <div className="space-y-4">
-                                        <div className="flex justify-between items-center">
-                                          <h4 className="font-medium text-sm">{formatColumnName(column)} Range</h4>
-                                          <button 
-                                            onClick={() => {
-                                              const range = getColumnRange(column);
-                                              handleRangeChange(column, [range.min, range.max]);
-                                            }}
-                                            className="text-xs text-blue-600 hover:underline"
+                                {/* All columns use multiselect filtering - account column included */}
+                                <Popover 
+                                  open={filterPopoverOpen[column]} 
+                                  onOpenChange={(open) => setFilterPopoverOpen({...filterPopoverOpen, [column]: open})}
+                                >
+                                  <PopoverTrigger>
+                                    <div className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
+                                      selectedFilters[column]?.length ? 'bg-blue-50 border-blue-200' : ''
+                                    }`}>
+                                      <Filter className="h-3 w-3" />
+                                    </div>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-72 p-0" align="start">
+                                    <Command>
+                                      <CommandInput placeholder={`Search ${formatColumnName(column)}...`} />
+                                      <div className="flex items-center px-2 pt-1">
+                                        <div className="ml-auto flex gap-1">
+                                          <button
+                                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                            onClick={() => clearColumnFilters(column)}
                                           >
-                                            Reset
+                                            <X className="h-3 w-3" /> Clear
                                           </button>
                                         </div>
-                                        {numberRangeFilters[column] && (
-                                          <>
-                                            <div className="pt-4">
-                                              <Slider
-                                                defaultValue={[
-                                                  numberRangeFilters[column].min,
-                                                  numberRangeFilters[column].max
-                                                ]}
-                                                min={getColumnRange(column).min}
-                                                max={getColumnRange(column).max}
-                                                step={1}
-                                                onValueChange={(values) => handleRangeChange(column, values)}
-                                              />
-                                            </div>
-                                            <div className="flex justify-between text-xs text-muted-foreground">
-                                              <span>Min: {numberRangeFilters[column].min}</span>
-                                              <span>Max: {numberRangeFilters[column].max}</span>
-                                            </div>
-                                          </>
-                                        )}
                                       </div>
-                                    </PopoverContent>
-                                  </Popover>
-                                ) : (
-                                  <Popover 
-                                    open={filterPopoverOpen[column]} 
-                                    onOpenChange={(open) => setFilterPopoverOpen({...filterPopoverOpen, [column]: open})}
-                                  >
-                                    <PopoverTrigger>
-                                      <div className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
-                                        selectedFilters[column]?.length ? 'bg-blue-50 border-blue-200' : ''
-                                      }`}>
-                                        <Filter className="h-3 w-3" />
-                                      </div>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-72 p-0" align="start">
-                                      <Command>
-                                        <CommandInput placeholder={`Search ${formatColumnName(column)}...`} />
-                                        <div className="flex items-center px-2 pt-1">
-                                          <div className="ml-auto flex gap-1">
-                                            <button
-                                              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                              onClick={() => clearColumnFilters(column)}
-                                            >
-                                              <X className="h-3 w-3" /> Clear
-                                            </button>
-                                          </div>
-                                        </div>
-                                        <CommandList className="p-2 max-h-52">
-                                          <CommandEmpty>No results found.</CommandEmpty>
-                                          <CommandGroup>
-                                            {getUniqueColumnValues(column).map((value) => {
-                                              const isSelected = selectedFilters[column]?.includes(value) || false;
-                                              return (
-                                                <CommandItem
-                                                  key={value}
-                                                  onSelect={() => {
-                                                    handleFilterSelectionChange(column, value, !isSelected);
-                                                  }}
-                                                  className="flex items-center gap-2"
-                                                >
-                                                  <div className="flex items-center gap-2 flex-1">
-                                                    <Checkbox 
-                                                      checked={isSelected}
-                                                      onCheckedChange={(checked) => {
-                                                        handleFilterSelectionChange(column, value, !!checked);
-                                                      }}
-                                                    />
-                                                    <span>{value}</span>
-                                                  </div>
-                                                  {isSelected && <Check className="h-4 w-4 text-blue-600" />}
-                                                </CommandItem>
-                                              );
-                                            })}
-                                          </CommandGroup>
-                                        </CommandList>
-                                      </Command>
-                                    </PopoverContent>
-                                  </Popover>
-                                )}
+                                      <CommandList className="p-2 max-h-52">
+                                        <CommandEmpty>No results found.</CommandEmpty>
+                                        <CommandGroup>
+                                          {getUniqueColumnValues(column).map((value) => {
+                                            const isSelected = selectedFilters[column]?.includes(value) || false;
+                                            return (
+                                              <CommandItem
+                                                key={value}
+                                                onSelect={() => {
+                                                  handleFilterSelectionChange(column, value, !isSelected);
+                                                }}
+                                                className="flex items-center gap-2"
+                                              >
+                                                <div className="flex items-center gap-2 flex-1">
+                                                  <Checkbox 
+                                                    checked={isSelected}
+                                                    onCheckedChange={(checked) => {
+                                                      handleFilterSelectionChange(column, value, !!checked);
+                                                    }}
+                                                  />
+                                                  <span>{value}</span>
+                                                </div>
+                                                {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                                              </CommandItem>
+                                            );
+                                          })}
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
                               </div>
                             </div>
                           </TableHead>
