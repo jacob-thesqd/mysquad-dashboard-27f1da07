@@ -12,7 +12,7 @@ const isClickUpTaskId = (value: string): boolean => {
 
 // Format date values with timezone
 const formatDateValue = (value: any, column: string): string => {
-  if (!value) return "—";
+  if (!value) return "";
   
   try {
     // Try to parse as ISO date
@@ -37,6 +37,27 @@ const isBooleanField = (column: string): boolean => {
   return ['auto_assign_override', 'aa_exclude'].includes(column);
 };
 
+// Check if a column is for auto-assign status
+const isAutoAssignStatusField = (column: string): boolean => {
+  return column === 'auto_assign_status';
+};
+
+// Get the badge color for auto-assign status value
+const getAutoAssignStatusColor = (value: string): string => {
+  switch (value?.toLowerCase()) {
+    case 'active':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'inactive':
+      return 'bg-gray-100 text-gray-600 border-gray-200';
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case 'excluded':
+      return 'bg-red-100 text-red-800 border-red-200';
+    default:
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+  }
+};
+
 interface TableCellContentProps {
   value: any;
   column: string;
@@ -44,7 +65,13 @@ interface TableCellContentProps {
 }
 
 const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDateColumn }) => {
-  if (value === null) return <span>—</span>;
+  // Handle null/undefined values - return empty span
+  if (value === null || value === undefined) return <span></span>;
+
+  // Handle time_estimated_mins separately as a number
+  if (column === 'time_estimated_mins') {
+    return <span>{value !== null ? String(value) : ""}</span>;
+  }
 
   // Handle boolean fields for auto_assign_override and aa_exclude
   if (isBooleanField(column)) {
@@ -53,6 +80,19 @@ const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDa
     } else {
       return <span></span>; // Empty for false values
     }
+  }
+
+  // Handle auto-assign status with colored badges
+  if (isAutoAssignStatusField(column)) {
+    if (!value) return <span></span>;
+    return (
+      <Badge 
+        variant="outline" 
+        className={`${getAutoAssignStatusColor(value)} whitespace-nowrap`}
+      >
+        {String(value)}
+      </Badge>
+    );
   }
 
   // Handle date fields
