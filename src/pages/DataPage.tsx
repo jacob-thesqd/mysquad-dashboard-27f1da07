@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { 
   ResizablePanelGroup,
   ResizablePanel,
@@ -25,7 +27,8 @@ import {
   SlidersHorizontal,
   X,
   Check,
-  ExternalLink
+  ExternalLink,
+  CalendarIcon
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -37,6 +40,25 @@ import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, Command
 import { Checkbox } from "@/components/ui/checkbox";
 import { format, isValid, parseISO } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
+import { Calendar } from "@/components/ui/calendar";
+import { 
+  Dialog, 
+  DialogTrigger, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { 
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl
+} from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useForm } from "react-hook-form";
 
 // Define type for project data
 type ProjectData = {
@@ -56,6 +78,26 @@ const DATE_COLUMNS = [
   'last_activated', 
   'last_deactivated'
 ];
+
+// Date filter operators
+const DATE_OPERATORS = [
+  { value: 'eq', label: 'Equal to' },
+  { value: 'neq', label: 'Not equal to' },
+  { value: 'gt', label: 'After' },
+  { value: 'lt', label: 'Before' },
+  { value: 'gte', label: 'On or after' },
+  { value: 'lte', label: 'On or before' },
+  { value: 'between', label: 'Between' },
+  { value: 'null', label: 'Is empty' },
+  { value: 'notnull', label: 'Is not empty' }
+];
+
+// Define type for date filter
+type DateFilter = {
+  operator: string;
+  value?: Date;
+  endValue?: Date;
+};
 
 // Helper to format column names
 const formatColumnName = (name: string): string => {
@@ -120,9 +162,67 @@ const formatDateValue = (value: any, column: string): string => {
   return String(value);
 };
 
+// Parse date value for filtering
+const parseDateForFilter = (value: any): Date | null => {
+  if (!value) return null;
+  
+  try {
+    const date = typeof value === 'string' ? parseISO(value) : new Date(value);
+    return isValid(date) ? date : null;
+  } catch (e) {
+    return null;
+  }
+};
+
 // Check if a string is a ClickUp task ID
 const isClickUpTaskId = (value: string): boolean => {
   return typeof value === 'string' && value.startsWith('86d');
+};
+
+// Compare dates for filtering
+const compareDates = (value: any, filterValue: Date | null, operator: string, endValue?: Date | null): boolean => {
+  if (!value || !filterValue) {
+    // Handle null checks based on operator
+    if (operator === 'null') return value === null || value === "";
+    if (operator === 'notnull') return value !== null && value !== "";
+    if (!filterValue) return false;
+  }
+  
+  const dateValue = parseDateForFilter(value);
+  if (!dateValue) {
+    // If value couldn't be parsed as a date, handle null operators
+    if (operator === 'null') return true;
+    if (operator === 'notnull') return false;
+    return false;
+  }
+  
+  // For non-null operators when filterValue is not set
+  if (!filterValue && operator !== 'null' && operator !== 'notnull') return false;
+  
+  // Compare based on operator
+  switch (operator) {
+    case 'eq': 
+      return dateValue.getTime() === filterValue.getTime();
+    case 'neq': 
+      return dateValue.getTime() !== filterValue.getTime();
+    case 'gt': 
+      return dateValue.getTime() > filterValue.getTime();
+    case 'lt': 
+      return dateValue.getTime() < filterValue.getTime();
+    case 'gte': 
+      return dateValue.getTime() >= filterValue.getTime();
+    case 'lte': 
+      return dateValue.getTime() <= filterValue.getTime();
+    case 'between':
+      if (!endValue) return false;
+      return dateValue.getTime() >= filterValue.getTime() && dateValue.getTime() <= endValue.getTime();
+    case 'null':
+      return value === null || value === "";
+    case 'notnull':
+      return value !== null && value !== "";
+    default:
+      return false;
+  }
 };
 
 const DataPage = () => {
@@ -131,7 +231,18 @@ const DataPage = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [numberRangeFilters, setNumberRangeFilters] = useState<Record<string, { min: number, max: number }>>({});
+  const [dateFilters, setDateFilters] = useState<Record<string, DateFilter>>({});
   const [filterPopoverOpen, setFilterPopoverOpen] = useState<Record<string, boolean>>({});
+  const [activeFilterDialog, setActiveFilterDialog] = useState<string | null>(null);
+
+  // Form for date filtering
+  const dateFilterForm = useForm({
+    defaultValues: {
+      operator: "eq" as string,
+      date: undefined as Date | undefined,
+      endDate: undefined as Date | undefined
+    }
+  });
 
   // Fetch data from Supabase
   const { data: projects = [], isLoading, error } = useQuery({
@@ -162,6 +273,13 @@ const DataPage = () => {
       isNumber(projects[0][column]) && 
       !isArrayColumn(projects, column) &&
       column !== 'account' // Exclude 'account' column from number filters
+    ), [columns, projects.length]
+  );
+
+  // Identify date columns for date filtering
+  const dateColumns = useMemo(() => 
+    columns.filter(column => 
+      projects.length > 0 && isDateColumn(column)
     ), [columns, projects.length]
   );
 
@@ -202,6 +320,44 @@ const DataPage = () => {
     }
   }, [projects.length > 0, numberColumns.join(',')]);
 
+  // Open date filter dialog
+  const openDateFilterDialog = (column: string) => {
+    // Set default values
+    const currentFilter = dateFilters[column] || { operator: 'eq' };
+    dateFilterForm.reset({
+      operator: currentFilter.operator,
+      date: currentFilter.value,
+      endDate: currentFilter.endValue
+    });
+    
+    setActiveFilterDialog(column);
+  };
+
+  // Apply date filter
+  const applyDateFilter = (column: string) => {
+    const values = dateFilterForm.getValues();
+    
+    setDateFilters(prev => ({
+      ...prev,
+      [column]: {
+        operator: values.operator,
+        value: values.date,
+        endValue: values.operator === 'between' ? values.endDate : undefined
+      }
+    }));
+    
+    setActiveFilterDialog(null);
+  };
+
+  // Clear date filter
+  const clearDateFilter = (column: string) => {
+    setDateFilters(prev => {
+      const newFilters = { ...prev };
+      delete newFilters[column];
+      return newFilters;
+    });
+  };
+
   // Filter projects based on search term and filters
   const filteredProjects = projects.filter(project => {
     // If no search term, return all projects
@@ -235,6 +391,13 @@ const DataPage = () => {
     for (const [column, range] of Object.entries(numberRangeFilters)) {
       const value = Number(project[column]);
       if (!isNaN(value) && (value < range.min || value > range.max)) {
+        return false;
+      }
+    }
+    
+    // Apply date filters
+    for (const [column, filter] of Object.entries(dateFilters)) {
+      if (!compareDates(project[column], filter.value || null, filter.operator, filter.endValue || null)) {
         return false;
       }
     }
@@ -400,6 +563,52 @@ const DataPage = () => {
     return String(value);
   };
 
+  // Render filter badge for date columns
+  const renderDateFilterBadge = (column: string) => {
+    const filter = dateFilters[column];
+    if (!filter) return null;
+    
+    const operator = DATE_OPERATORS.find(op => op.value === filter.operator);
+    let label = "";
+    
+    switch (filter.operator) {
+      case 'eq':
+        label = filter.value ? `= ${format(filter.value, 'MMM d, yyyy')}` : '';
+        break;
+      case 'neq':
+        label = filter.value ? `≠ ${format(filter.value, 'MMM d, yyyy')}` : '';
+        break;
+      case 'gt':
+        label = filter.value ? `> ${format(filter.value, 'MMM d, yyyy')}` : '';
+        break;
+      case 'lt':
+        label = filter.value ? `< ${format(filter.value, 'MMM d, yyyy')}` : '';
+        break;
+      case 'gte':
+        label = filter.value ? `≥ ${format(filter.value, 'MMM d, yyyy')}` : '';
+        break;
+      case 'lte':
+        label = filter.value ? `≤ ${format(filter.value, 'MMM d, yyyy')}` : '';
+        break;
+      case 'between':
+        label = filter.value && filter.endValue ? 
+          `${format(filter.value, 'MMM d')} - ${format(filter.endValue, 'MMM d, yyyy')}` : '';
+        break;
+      case 'null':
+        label = 'Is empty';
+        break;
+      case 'notnull':
+        label = 'Not empty';
+        break;
+    }
+    
+    return (
+      <Badge variant="secondary" className="mr-1 px-1 py-0 h-5">
+        {label}
+      </Badge>
+    );
+  };
+
   return (
     <div className="h-full w-full flex flex-col">
       <Tabs defaultValue="active" className="w-full h-full">
@@ -457,68 +666,85 @@ const DataPage = () => {
                                 )}
                               </button>
                               <div className="ml-auto flex items-center">
-                                {selectedFilters[column]?.length > 0 && (
-                                  <Badge variant="secondary" className="mr-1 px-1 py-0 h-5">
-                                    {selectedFilters[column].length}
-                                  </Badge>
-                                )}
-                                
-                                {/* All columns use multiselect filtering - account column included */}
-                                <Popover 
-                                  open={filterPopoverOpen[column]} 
-                                  onOpenChange={(open) => setFilterPopoverOpen({...filterPopoverOpen, [column]: open})}
-                                >
-                                  <PopoverTrigger>
-                                    <div className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
-                                      selectedFilters[column]?.length ? 'bg-blue-50 border-blue-200' : ''
-                                    }`}>
-                                      <Filter className="h-3 w-3" />
-                                    </div>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-72 p-0" align="start">
-                                    <Command>
-                                      <CommandInput placeholder={`Search ${formatColumnName(column)}...`} />
-                                      <div className="flex items-center px-2 pt-1">
-                                        <div className="ml-auto flex gap-1">
-                                          <button
-                                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                            onClick={() => clearColumnFilters(column)}
-                                          >
-                                            <X className="h-3 w-3" /> Clear
-                                          </button>
+                                {isDateColumn(column) ? (
+                                  // Date filter UI
+                                  <>
+                                    {renderDateFilterBadge(column)}
+                                    <button
+                                      onClick={() => openDateFilterDialog(column)}
+                                      className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
+                                        dateFilters[column] ? 'bg-blue-50 border-blue-200' : ''
+                                      }`}
+                                    >
+                                      <CalendarIcon className="h-3 w-3" />
+                                    </button>
+                                  </>
+                                ) : (
+                                  // Regular filter UI for non-date columns
+                                  <>
+                                    {selectedFilters[column]?.length > 0 && (
+                                      <Badge variant="secondary" className="mr-1 px-1 py-0 h-5">
+                                        {selectedFilters[column].length}
+                                      </Badge>
+                                    )}
+                                    
+                                    <Popover 
+                                      open={filterPopoverOpen[column]} 
+                                      onOpenChange={(open) => setFilterPopoverOpen({...filterPopoverOpen, [column]: open})}
+                                    >
+                                      <PopoverTrigger>
+                                        <div className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
+                                          selectedFilters[column]?.length ? 'bg-blue-50 border-blue-200' : ''
+                                        }`}>
+                                          <Filter className="h-3 w-3" />
                                         </div>
-                                      </div>
-                                      <CommandList className="p-2 max-h-52">
-                                        <CommandEmpty>No results found.</CommandEmpty>
-                                        <CommandGroup>
-                                          {getUniqueColumnValues(column).map((value) => {
-                                            const isSelected = selectedFilters[column]?.includes(value) || false;
-                                            return (
-                                              <CommandItem
-                                                key={value}
-                                                onSelect={() => {
-                                                  handleFilterSelectionChange(column, value, !isSelected);
-                                                }}
-                                                className="flex items-center gap-2"
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-72 p-0" align="start">
+                                        <Command>
+                                          <CommandInput placeholder={`Search ${formatColumnName(column)}...`} />
+                                          <div className="flex items-center px-2 pt-1">
+                                            <div className="ml-auto flex gap-1">
+                                              <button
+                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                                onClick={() => clearColumnFilters(column)}
                                               >
-                                                <div className="flex items-center gap-2 flex-1">
-                                                  <Checkbox 
-                                                    checked={isSelected}
-                                                    onCheckedChange={(checked) => {
-                                                      handleFilterSelectionChange(column, value, !!checked);
+                                                <X className="h-3 w-3" /> Clear
+                                              </button>
+                                            </div>
+                                          </div>
+                                          <CommandList className="p-2 max-h-52">
+                                            <CommandEmpty>No results found.</CommandEmpty>
+                                            <CommandGroup>
+                                              {getUniqueColumnValues(column).map((value) => {
+                                                const isSelected = selectedFilters[column]?.includes(value) || false;
+                                                return (
+                                                  <CommandItem
+                                                    key={value}
+                                                    onSelect={() => {
+                                                      handleFilterSelectionChange(column, value, !isSelected);
                                                     }}
-                                                  />
-                                                  <span>{value}</span>
-                                                </div>
-                                                {isSelected && <Check className="h-4 w-4 text-blue-600" />}
-                                              </CommandItem>
-                                            );
-                                          })}
-                                        </CommandGroup>
-                                      </CommandList>
-                                    </Command>
-                                  </PopoverContent>
-                                </Popover>
+                                                    className="flex items-center gap-2"
+                                                  >
+                                                    <div className="flex items-center gap-2 flex-1">
+                                                      <Checkbox 
+                                                        checked={isSelected}
+                                                        onCheckedChange={(checked) => {
+                                                          handleFilterSelectionChange(column, value, !!checked);
+                                                        }}
+                                                      />
+                                                      <span>{value}</span>
+                                                    </div>
+                                                    {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                                                  </CommandItem>
+                                                );
+                                              })}
+                                            </CommandGroup>
+                                          </CommandList>
+                                        </Command>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </TableHead>
@@ -571,6 +797,111 @@ const DataPage = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Date Filter Dialog */}
+      <Dialog open={!!activeFilterDialog} onOpenChange={(open) => !open && setActiveFilterDialog(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Filter by {activeFilterDialog ? formatColumnName(activeFilterDialog) : ''}</DialogTitle>
+            <DialogDescription>
+              Choose a filter type and select dates to filter the data.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...dateFilterForm}>
+            <div className="grid gap-4 py-4">
+              <FormField
+                control={dateFilterForm.control}
+                name="operator"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Filter type</FormLabel>
+                    <FormControl>
+                      <RadioGroup 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                      >
+                        {DATE_OPERATORS.map(op => (
+                          <div key={op.value} className="flex items-center space-x-2">
+                            <RadioGroupItem value={op.value} id={op.value} />
+                            <label htmlFor={op.value} className="text-sm font-medium">{op.label}</label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              {dateFilterForm.watch('operator') !== 'null' && 
+               dateFilterForm.watch('operator') !== 'notnull' && (
+                <FormField
+                  control={dateFilterForm.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>{dateFilterForm.watch('operator') === 'between' ? 'Start date' : 'Date'}</FormLabel>
+                      <div className="grid gap-2">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          className="rounded-md border pointer-events-auto"
+                        />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              )}
+              
+              {dateFilterForm.watch('operator') === 'between' && (
+                <FormField
+                  control={dateFilterForm.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>End date</FormLabel>
+                      <div className="grid gap-2">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          className="rounded-md border pointer-events-auto"
+                        />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  if (activeFilterDialog) {
+                    clearDateFilter(activeFilterDialog);
+                  }
+                  setActiveFilterDialog(null);
+                }}
+              >
+                Clear
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  if (activeFilterDialog) {
+                    applyDateFilter(activeFilterDialog);
+                  }
+                }}
+              >
+                Apply Filter
+              </Button>
+            </DialogFooter>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
