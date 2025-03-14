@@ -47,6 +47,11 @@ const isTimeEstimatedField = (column: string): boolean => {
   return column === 'time_estimated_mins';
 };
 
+// Check if a column is the status field that needs colored badges
+const isStatusField = (column: string): boolean => {
+  return column === 'status';
+};
+
 // Get the badge color for auto-assign status value
 const getAutoAssignStatusColor = (value: string): string => {
   switch (value?.toLowerCase()) {
@@ -67,9 +72,10 @@ interface TableCellContentProps {
   value: any;
   column: string;
   isDateColumn: boolean;
+  row?: any; // Add row prop to access other fields in the same row
 }
 
-const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDateColumn }) => {
+const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDateColumn, row }) => {
   // Handle null/undefined values - return empty span
   if (value === null || value === undefined) return <span></span>;
 
@@ -95,6 +101,33 @@ const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDa
         variant="outline" 
         className={`${getAutoAssignStatusColor(value)} whitespace-nowrap`}
       >
+        {String(value)}
+      </Badge>
+    );
+  }
+
+  // Handle status field with colored badges based on status_color
+  if (isStatusField(column) && row && row.status_color) {
+    const colorMap: Record<string, string> = {
+      '#d3d3d3': 'bg-gray-100 text-gray-800 border-gray-200',
+      '#8e8e8e': 'bg-gray-300 text-gray-800 border-gray-400',
+      '#ff7800': 'bg-orange-100 text-orange-800 border-orange-200',
+      '#f9d900': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      '#6bc950': 'bg-green-100 text-green-800 border-green-200',
+      '#02ceff': 'bg-blue-100 text-blue-800 border-blue-200',
+      '#a875ff': 'bg-purple-100 text-purple-800 border-purple-200',
+      '#fc7ab1': 'bg-pink-100 text-pink-800 border-pink-200',
+      '#ff6464': 'bg-red-100 text-red-800 border-red-200',
+      '#b8255f': 'bg-red-200 text-red-800 border-red-300',
+      '#08a4df': 'bg-blue-200 text-blue-800 border-blue-300',
+      '#7fa4d9': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      '#9747ff': 'bg-violet-100 text-violet-800 border-violet-200'
+    };
+    
+    const statusColor = colorMap[row.status_color] || 'bg-gray-100 text-gray-800 border-gray-200';
+    
+    return (
+      <Badge variant="outline" className={`${statusColor} whitespace-nowrap`}>
         {String(value)}
       </Badge>
     );
