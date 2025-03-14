@@ -36,6 +36,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format, isValid, parseISO } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 // Define type for project data
 type ProjectData = {
@@ -80,7 +81,7 @@ const extractUniqueArrayItems = (data: ProjectData[], column: string): string[] 
   return Array.from(uniqueItems).sort();
 };
 
-// Format date values
+// Format date values with timezone
 const formatDateValue = (value: any): string => {
   if (!value) return "—";
   
@@ -89,11 +90,11 @@ const formatDateValue = (value: any): string => {
     const date = typeof value === 'string' ? parseISO(value) : new Date(value);
     
     if (isValid(date)) {
-      // Check if it has time component
+      // Format with timezone (CST = America/Chicago)
       if (typeof value === 'string' && value.includes('T')) {
-        return format(date, 'MMM d, yyyy h:mm a');
+        return formatInTimeZone(date, 'America/Chicago', 'MMM d, yyyy h:mm a zzz');
       } else {
-        return format(date, 'MMM d, yyyy');
+        return formatInTimeZone(date, 'America/Chicago', 'MMM d, yyyy');
       }
     }
   } catch (e) {
@@ -338,9 +339,9 @@ const DataPage = () => {
                 >
                   <Badge 
                     variant="outline" 
-                    className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1 whitespace-nowrap"
+                    className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1 whitespace-nowrap inline-flex"
                   >
-                    {String(item).substring(0, 10)}
+                    <span className="truncate">{String(item).substring(0, 10)}</span>
                     <ExternalLink size={12} />
                   </Badge>
                 </a>
@@ -367,12 +368,13 @@ const DataPage = () => {
           href={`https://app.clickup.com/t/${value}`}
           target="_blank"
           rel="noopener noreferrer"
+          className="inline-block"
         >
           <Badge 
             variant="outline" 
-            className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1 whitespace-nowrap"
+            className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1 whitespace-nowrap inline-flex w-fit"
           >
-            {String(value).substring(0, 10)}
+            <span className="truncate">{String(value).substring(0, 10)}</span>
             <ExternalLink size={12} />
           </Badge>
         </a>
