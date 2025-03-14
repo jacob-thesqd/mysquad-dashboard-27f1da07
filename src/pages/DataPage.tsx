@@ -46,6 +46,17 @@ type ProjectData = {
 // Columns to hide
 const HIDDEN_COLUMNS = ['active_products', 'aa_trigger', 'last_activated_by', 'last_deactivated_by'];
 
+// Columns that should be treated as dates for formatting
+const DATE_COLUMNS = [
+  'date', 
+  'created_at', 
+  'updated_at', 
+  'start_date', 
+  'end_date', 
+  'last_activated', 
+  'last_deactivated'
+];
+
 // Helper to format column names
 const formatColumnName = (name: string): string => {
   return name
@@ -81,8 +92,13 @@ const extractUniqueArrayItems = (data: ProjectData[], column: string): string[] 
   return Array.from(uniqueItems).sort();
 };
 
+// Check if a column should be treated as a date
+const isDateColumn = (column: string): boolean => {
+  return DATE_COLUMNS.includes(column) || column.includes('date') || column.includes('time');
+};
+
 // Format date values with timezone
-const formatDateValue = (value: any): string => {
+const formatDateValue = (value: any, column: string): string => {
   if (!value) return "—";
   
   try {
@@ -309,13 +325,13 @@ const DataPage = () => {
     return 'min-w-[180px]';
   };
 
-  // Render array values as badges
+  // Render cell content
   const renderCellContent = (value: any, column: string) => {
     if (value === null) return "—";
     
     // Handle date fields
-    if (column.includes('date') || column.includes('time') || column.includes('created_at') || column.includes('updated_at')) {
-      return formatDateValue(value);
+    if (isDateColumn(column)) {
+      return formatDateValue(value, column);
     }
     
     // Render account as badge with specific color
