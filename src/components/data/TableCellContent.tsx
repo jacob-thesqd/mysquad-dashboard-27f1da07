@@ -75,7 +75,7 @@ const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDa
 
   // Handle time_estimated_mins as a number
   if (isTimeEstimatedField(column)) {
-    console.log('val:',val)
+    console.log('val:',value)
     return <span>{Number.isFinite(Number(value)) ? Number(value) : ""}</span>;
   }
 
