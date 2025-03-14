@@ -25,7 +25,8 @@ import {
   Filter, 
   SlidersHorizontal,
   X,
-  Check
+  Check,
+  ExternalLink
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -35,11 +36,15 @@ import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
+import { format, isValid, parseISO } from "date-fns";
 
 // Define type for project data
 type ProjectData = {
   [key: string]: any;
 };
+
+// Columns to hide
+const HIDDEN_COLUMNS = ['active_products', 'aa_trigger', 'last_activated_by', 'last_deactivated_by'];
 
 // Helper to format column names
 const formatColumnName = (name: string): string => {
@@ -76,6 +81,34 @@ const extractUniqueArrayItems = (data: ProjectData[], column: string): string[] 
   return Array.from(uniqueItems).sort();
 };
 
+// Format date values
+const formatDateValue = (value: any): string => {
+  if (!value) return "—";
+  
+  try {
+    // Try to parse as ISO date
+    const date = typeof value === 'string' ? parseISO(value) : new Date(value);
+    
+    if (isValid(date)) {
+      // Check if it has time component
+      if (typeof value === 'string' && value.includes('T')) {
+        return format(date, 'MMM d, yyyy h:mm a');
+      } else {
+        return format(date, 'MMM d, yyyy');
+      }
+    }
+  } catch (e) {
+    // If parsing fails, return original value
+  }
+  
+  return String(value);
+};
+
+// Check if a string is a ClickUp task ID
+const isClickUpTaskId = (value: string): boolean => {
+  return typeof value === 'string' && value.startsWith('86d');
+};
+
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -101,7 +134,10 @@ const DataPage = () => {
   });
 
   // Get all column names from first project
-  const columns = projects.length > 0 ? Object.keys(projects[0]) : [];
+  const columns = useMemo(() => {
+    if (projects.length === 0) return [];
+    return Object.keys(projects[0]).filter(column => !HIDDEN_COLUMNS.includes(column));
+  }, [projects]);
   
   // Identify number columns for slider filtering
   const numberColumns = useMemo(() => 
@@ -261,7 +297,7 @@ const DataPage = () => {
 
   // Get the width class for a column
   const getColumnWidthClass = (column: string): string => {
-    if (['church', 'products', 'active_task_ids', 'active_products'].includes(column)) {
+    if (['church', 'products', 'active_task_ids'].includes(column)) {
       return 'min-w-[300px]';
     }
     return 'min-w-[180px]';
@@ -270,6 +306,11 @@ const DataPage = () => {
   // Render array values as badges
   const renderCellContent = (value: any, column: string) => {
     if (value === null) return "—";
+    
+    // Handle date fields
+    if (column.includes('date') || column.includes('time') || column.includes('created_at') || column.includes('updated_at')) {
+      return formatDateValue(value);
+    }
     
     // Render account as badge
     if (column === 'account') {
@@ -280,16 +321,56 @@ const DataPage = () => {
     if (Array.isArray(value)) {
       return (
         <div className="flex flex-wrap gap-1">
-          {value.map((item, index) => (
-            <Badge 
-              key={index} 
-              variant="outline" 
-              className="bg-blue-50 text-blue-800 border-blue-200"
-            >
-              {String(item)}
-            </Badge>
-          ))}
+          {value.map((item, index) => {
+            if (isClickUpTaskId(String(item))) {
+              return (
+                <a 
+                  key={index}
+                  href={`https://app.clickup.com/t/${item}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block"
+                >
+                  <Badge 
+                    variant="outline" 
+                    className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1"
+                  >
+                    {String(item)}
+                    <ExternalLink size={12} />
+                  </Badge>
+                </a>
+              );
+            }
+            return (
+              <Badge 
+                key={index} 
+                variant="outline" 
+                className="bg-blue-50 text-blue-800 border-blue-200"
+              >
+                {String(item)}
+              </Badge>
+            );
+          })}
         </div>
+      );
+    }
+    
+    // Handle ClickUp task IDs
+    if (isClickUpTaskId(String(value))) {
+      return (
+        <a 
+          href={`https://app.clickup.com/t/${value}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Badge 
+            variant="outline" 
+            className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1"
+          >
+            {String(value)}
+            <ExternalLink size={12} />
+          </Badge>
+        </a>
       );
     }
     
@@ -495,7 +576,9 @@ const DataPage = () => {
                           <TableRow key={index}>
                             {columns.map((column) => (
                               <TableCell key={`${index}-${column}`} className={getColumnWidthClass(column)}>
-                                {renderCellContent(project[column], column)}
+                                <div className="overflow-x-auto max-w-full scrollbar-hide">
+                                  {renderCellContent(project[column], column)}
+                                </div>
                               </TableCell>
                             ))}
                           </TableRow>
