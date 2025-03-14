@@ -44,6 +44,7 @@ const isAutoAssignStatusField = (column: string): boolean => {
 
 // Check if a column is the time estimated minutes field
 const isTimeEstimatedField = (column: string): boolean => {
+  console.log('col: ',column)
   return column === 'time_estimated_mins';
 };
 
