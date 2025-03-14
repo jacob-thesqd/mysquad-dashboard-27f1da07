@@ -8,10 +8,28 @@ export type ProjectData = {
 };
 
 // Columns to hide
-export const HIDDEN_COLUMNS = ['active_products', 'aa_trigger', 'last_activated_by', 'last_deactivated_by', 'cu_queued'];
+export const HIDDEN_COLUMNS = [
+  'active_products', 
+  'aa_trigger', 
+  'last_activated_by', 
+  'last_deactivated_by', 
+  'cu_queued',
+  'status_color',
+  'assignee',
+  'space_name',
+  'task_dependencies'
+];
 
 // Columns that should be treated as dates for formatting
-export const DATE_COLUMNS = ['date', 'created_at', 'updated_at', 'start_date', 'end_date', 'last_activated', 'last_deactivated'];
+export const DATE_COLUMNS = [
+  'date', 
+  'created_at', 
+  'updated_at', 
+  'start_date', 
+  'end_date', 
+  'last_activated', 
+  'last_deactivated'
+];
 
 // Check if a value is a number
 export const isNumber = (value: any): boolean => {
@@ -40,7 +58,9 @@ export const extractUniqueArrayItems = (data: ProjectData[], column: string): st
 
 // Check if a column should be treated as a date
 export const isDateColumn = (column: string): boolean => {
-  return DATE_COLUMNS.includes(column) || column.includes('date') || column.includes('time');
+  // Exclude time_estimated_mins from date columns
+  if (column === 'time_estimated_mins') return false;
+  return DATE_COLUMNS.includes(column) || (column.includes('date') || column.includes('time'));
 };
 
 // Parse date value for filtering

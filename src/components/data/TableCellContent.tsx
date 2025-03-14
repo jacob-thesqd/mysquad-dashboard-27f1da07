@@ -1,6 +1,6 @@
 
 import React from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatInTimeZone } from "date-fns-tz";
 import { parseISO, isValid } from "date-fns";
@@ -32,6 +32,11 @@ const formatDateValue = (value: any, column: string): string => {
   return String(value);
 };
 
+// Check if a column is a boolean field that should use special rendering
+const isBooleanField = (column: string): boolean => {
+  return ['auto_assign_override', 'aa_exclude'].includes(column);
+};
+
 interface TableCellContentProps {
   value: any;
   column: string;
@@ -40,6 +45,15 @@ interface TableCellContentProps {
 
 const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDateColumn }) => {
   if (value === null) return <span>—</span>;
+
+  // Handle boolean fields for auto_assign_override and aa_exclude
+  if (isBooleanField(column)) {
+    if (value === true) {
+      return <Check size={16} className="text-green-500" />;
+    } else {
+      return <span></span>; // Empty for false values
+    }
+  }
 
   // Handle date fields
   if (isDateColumn) {
