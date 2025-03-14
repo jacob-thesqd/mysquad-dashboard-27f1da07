@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -323,7 +322,7 @@ const DataPage = () => {
     // Render arrays as badge lists
     if (Array.isArray(value)) {
       return (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar">
           {value.map((item, index) => {
             if (isClickUpTaskId(String(item))) {
               return (
@@ -332,11 +331,11 @@ const DataPage = () => {
                   href={`https://app.clickup.com/t/${item}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block"
+                  className="inline-block flex-shrink-0"
                 >
                   <Badge 
                     variant="outline" 
-                    className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1"
+                    className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1 whitespace-nowrap"
                   >
                     {String(item).substring(0, 10)}
                     <ExternalLink size={12} />
@@ -348,7 +347,7 @@ const DataPage = () => {
               <Badge 
                 key={index} 
                 variant="outline" 
-                className="bg-blue-50 text-blue-800 border-blue-200"
+                className="bg-blue-50 text-blue-800 border-blue-200 whitespace-nowrap flex-shrink-0"
               >
                 {String(item)}
               </Badge>
@@ -368,7 +367,7 @@ const DataPage = () => {
         >
           <Badge 
             variant="outline" 
-            className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1"
+            className="bg-blue-50 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-100 flex items-center gap-1 whitespace-nowrap"
           >
             {String(value).substring(0, 10)}
             <ExternalLink size={12} />
@@ -529,7 +528,7 @@ const DataPage = () => {
                           <TableRow key={index}>
                             {columns.map((column) => (
                               <TableCell key={`${index}-${column}`} className={getColumnWidthClass(column)}>
-                                <div className="overflow-x-auto max-w-full scrollbar-hide">
+                                <div className="overflow-x-auto hide-scrollbar">
                                   {renderCellContent(project[column], column)}
                                 </div>
                               </TableCell>
