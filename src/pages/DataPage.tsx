@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -98,7 +99,7 @@ const DataPage = () => {
   const getUniqueColumnValues = (column: string) => {
     const values = new Set<string>();
     projects.forEach(project => {
-      if (project[column] !== null) {
+      if (project[column] !== null && project[column] !== "") {
         values.add(String(project[column]));
       }
     });
@@ -179,16 +180,16 @@ const DataPage = () => {
                             </button>
                             <div className="ml-auto">
                               <Select
-                                value={selectedFilters[column] || ""}
+                                value={selectedFilters[column] || "all"}
                                 onValueChange={(value) => 
-                                  value ? handleFilterChange(column, value) : clearFilter(column)
+                                  value === "all" ? clearFilter(column) : handleFilterChange(column, value)
                                 }
                               >
                                 <SelectTrigger className="h-6 w-7 px-1">
                                   <Filter className="h-3 w-3" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="">All</SelectItem>
+                                  <SelectItem value="all">All</SelectItem>
                                   {getUniqueColumnValues(column).map((value) => (
                                     <SelectItem key={value} value={value}>
                                       {value}
