@@ -47,8 +47,19 @@ const isTimeEstimatedField = (column: string): boolean => {
   return column === 'time_estimated_mins';
 };
 
-// Get the badge color for auto-assign status value
-const getAutoAssignStatusColor = (value: string): string => {
+// Check if a column is the status field
+const isStatusField = (column: string): boolean => {
+  return column === 'status';
+};
+
+// Get the badge color based on status_color or auto-assign status value
+const getBadgeColor = (value: string, colorValue?: string): string => {
+  if (colorValue) {
+    // Use status_color if available
+    return `bg-[${colorValue}] text-white border-[${colorValue}]`;
+  }
+  
+  // Fallback colors for auto-assign status
   switch (value?.toLowerCase()) {
     case 'complete':
       return 'bg-green-100 text-green-800 border-green-200';
@@ -67,16 +78,15 @@ interface TableCellContentProps {
   value: any;
   column: string;
   isDateColumn: boolean;
+  rowData?: any; // Add rowData prop to access the entire row
 }
 
-const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDateColumn }) => {
+const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDateColumn, rowData }) => {
   // Handle null/undefined values - return empty span
   if (value === null || value === undefined) return <span></span>;
 
   // Handle time_estimated_mins as a number
   if (isTimeEstimatedField(column)) {
-    console.log('col:',column)
-    console.log('val:',value)
     return <span>{Number.isFinite(Number(value)) ? Number(value) : ""}</span>;
   }
 
@@ -89,13 +99,27 @@ const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDa
     }
   }
 
+  // Handle status field with colored badges
+  if (isStatusField(column) && rowData) {
+    const statusColor = rowData.status_color;
+    return (
+      <Badge 
+        variant="outline" 
+        className={`${statusColor ? `bg-[${statusColor}]` : 'bg-gray-100'} ${statusColor ? 'text-white' : 'text-gray-800'} whitespace-nowrap`}
+        style={statusColor ? { backgroundColor: statusColor, borderColor: statusColor } : {}}
+      >
+        {String(value)}
+      </Badge>
+    );
+  }
+
   // Handle auto-assign status with colored badges
   if (isAutoAssignStatusField(column)) {
     if (!value) return <span></span>;
     return (
       <Badge 
         variant="outline" 
-        className={`${getAutoAssignStatusColor(value)} whitespace-nowrap`}
+        className={`${getBadgeColor(String(value))} whitespace-nowrap`}
       >
         {String(value)}
       </Badge>

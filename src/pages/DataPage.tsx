@@ -1,10 +1,8 @@
 
-import React, { useState, useMemo, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, CheckCircle, Layers } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import DataTable from "@/components/data/DataTable";
 import { DateFilter } from "@/components/data/DateFilterPopover";
 import {
@@ -19,6 +17,8 @@ import {
   sortProjects,
   getUniqueColumnValues
 } from "@/utils/dataUtils";
+import { useDataFetching } from "@/hooks/useDataFetching";
+import { toast } from "sonner";
 
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,37 +34,21 @@ const DataPage = () => {
   const [dateFilterPopoverOpen, setDateFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<string>("active");
 
-  // Fetch active projects data from Supabase
+  // Use our custom hook to fetch data
   const {
     data: activeProjects = [],
     isLoading: isActiveLoading,
     error: activeError
-  } = useQuery({
-    queryKey: ["activeProjects"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("active_projects_mv").select("*");
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data as ProjectData[];
-    },
+  } = useDataFetching(["activeProjects"], "active_projects_mv", {
     enabled: activeTab === "active"
   });
 
-  // Fetch master projects data from Supabase
+  // Fetch master projects data using pagination
   const {
     data: masterProjects = [],
     isLoading: isMasterLoading,
     error: masterError
-  } = useQuery({
-    queryKey: ["masterProjects"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("master_project_view_mv").select("*");
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data as ProjectData[];
-    },
+  } = useDataFetching(["masterProjects"], "master_project_view_mv", {
     enabled: activeTab === "master"
   });
 
@@ -112,7 +96,7 @@ const DataPage = () => {
   );
 
   // Initialize range filters for number columns
-  useEffect(() => {
+  React.useEffect(() => {
     if (currentProjects.length > 0) {
       const initialRanges: Record<string, { min: number; max: number }> = {};
       numberColumns.forEach(column => {
@@ -252,7 +236,7 @@ const DataPage = () => {
             </div>
             
             <DataTable 
-              projects={sortedProjects}
+              data={sortedProjects}
               columns={columns}
               dateColumns={dateColumns}
               arrayColumns={arrayColumns}
@@ -297,7 +281,7 @@ const DataPage = () => {
             </div>
             
             <DataTable 
-              projects={sortedProjects}
+              data={sortedProjects}
               columns={columns}
               dateColumns={dateColumns}
               arrayColumns={arrayColumns}

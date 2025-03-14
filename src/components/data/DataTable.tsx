@@ -5,8 +5,8 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import TableCellContent from "./TableCellContent";
 import ColumnFilterPopover from "./ColumnFilterPopover";
-import DateFilterPopover from "./DateFilterPopover";
 import { DateFilter } from "./DateFilterPopover";
+import DateFilterPopover from "./DateFilterPopover";
 
 // Helper to format column names
 const formatColumnName = (name: string): string => {
@@ -25,7 +25,7 @@ const getColumnWidthClass = (column: string): string => {
 };
 
 interface DataTableProps {
-  projects: any[];
+  data: any[];
   columns: string[];
   dateColumns: string[];
   arrayColumns: string[];
@@ -48,7 +48,7 @@ interface DataTableProps {
 }
 
 const DataTable: React.FC<DataTableProps> = ({
-  projects,
+  data,
   columns,
   dateColumns,
   arrayColumns,
@@ -134,22 +134,23 @@ const DataTable: React.FC<DataTableProps> = ({
                     Error loading data: {(error as Error).message}
                   </TableCell>
                 </TableRow>
-              ) : projects.length === 0 ? (
+              ) : data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="text-center py-8">
                     No projects found
                   </TableCell>
                 </TableRow>
               ) : (
-                projects.map((project, index) => (
+                data.map((project, index) => (
                   <TableRow key={index}>
                     {columns.map(column => (
                       <TableCell key={`${index}-${column}`} className={getColumnWidthClass(column)}>
                         <div className="overflow-x-auto hide-scrollbar">
                           <TableCellContent 
-                            value={project[column]} 
+                            value={project[column]}
                             column={column}
                             isDateColumn={dateColumns.includes(column)}
+                            rowData={project}  
                           />
                         </div>
                       </TableCell>
