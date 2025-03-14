@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Table, 
@@ -16,13 +16,25 @@ import {
   ResizablePanel,
   ResizableHandle
 } from "@/components/ui/resizable";
-import { CheckCircle, Layers, Search, ArrowUp, ArrowDown, Filter, SlidersHorizontal } from "lucide-react";
+import { 
+  CheckCircle, 
+  Layers, 
+  Search, 
+  ArrowUp, 
+  ArrowDown, 
+  Filter, 
+  SlidersHorizontal,
+  X,
+  Check
+} from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Define type for project data
 type ProjectData = {
@@ -47,12 +59,30 @@ const isArrayColumn = (data: ProjectData[], column: string): boolean => {
   return data.some(item => Array.isArray(item[column]));
 };
 
+// Extract unique items from arrays across all rows for a column
+const extractUniqueArrayItems = (data: ProjectData[], column: string): string[] => {
+  const uniqueItems = new Set<string>();
+  
+  data.forEach(item => {
+    if (Array.isArray(item[column])) {
+      item[column].forEach((val: any) => {
+        if (val !== null && val !== "") {
+          uniqueItems.add(String(val));
+        }
+      });
+    }
+  });
+  
+  return Array.from(uniqueItems).sort();
+};
+
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [numberRangeFilters, setNumberRangeFilters] = useState<Record<string, { min: number, max: number }>>({});
+  const [filterPopoverOpen, setFilterPopoverOpen] = useState<Record<string, boolean>>({});
 
   // Fetch data from Supabase
   const { data: projects = [], isLoading, error } = useQuery({
@@ -74,8 +104,17 @@ const DataPage = () => {
   const columns = projects.length > 0 ? Object.keys(projects[0]) : [];
   
   // Identify number columns for slider filtering
-  const numberColumns = columns.filter(column => 
-    projects.length > 0 && isNumber(projects[0][column]) && !isArrayColumn(projects, column)
+  const numberColumns = useMemo(() => 
+    columns.filter(column => 
+      projects.length > 0 && isNumber(projects[0][column]) && !isArrayColumn(projects, column)
+    ), [columns, projects.length]
+  );
+
+  // Identify array columns for special filtering
+  const arrayColumns = useMemo(() => 
+    columns.filter(column => 
+      projects.length > 0 && isArrayColumn(projects, column)
+    ), [columns, projects.length]
   );
 
   // Get min and max values for number columns
@@ -119,9 +158,21 @@ const DataPage = () => {
     );
   }).filter(project => {
     // Apply column-specific filters
-    for (const [column, filterValue] of Object.entries(selectedFilters)) {
-      if (filterValue && filterValue !== "all" && String(project[column]) !== filterValue) {
-        return false;
+    for (const [column, filterValues] of Object.entries(selectedFilters)) {
+      if (!filterValues || filterValues.length === 0) continue;
+      
+      if (isArrayColumn(projects, column)) {
+        // For array columns, check if any selected filter value exists in the array
+        if (!Array.isArray(project[column]) || !project[column].some((val: any) => 
+          filterValues.includes(String(val))
+        )) {
+          return false;
+        }
+      } else {
+        // For non-array columns, check if the value matches any of the selected filters
+        if (!filterValues.includes(String(project[column]))) {
+          return false;
+        }
       }
     }
     
@@ -162,26 +213,37 @@ const DataPage = () => {
   };
 
   // Get unique values for a column to use in filter dropdowns
-  const getUniqueColumnValues = (column: string) => {
+  const getUniqueColumnValues = (column: string): string[] => {
+    // For array columns, extract unique items from within arrays
+    if (isArrayColumn(projects, column)) {
+      return extractUniqueArrayItems(projects, column);
+    }
+
+    // For normal columns
     const values = new Set<string>();
     projects.forEach(project => {
       if (project[column] !== null && project[column] !== "") {
         values.add(String(project[column]));
       }
     });
-    return Array.from(values);
+    return Array.from(values).sort();
   };
 
-  // Handle filter change
-  const handleFilterChange = (column: string, value: string) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      [column]: value
-    }));
+  // Handle filter selection changes for multiselect
+  const handleFilterSelectionChange = (column: string, value: string, checked: boolean) => {
+    setSelectedFilters(prev => {
+      const current = prev[column] || [];
+      
+      if (checked) {
+        return { ...prev, [column]: [...current, value] };
+      } else {
+        return { ...prev, [column]: current.filter(item => item !== value) };
+      }
+    });
   };
 
-  // Clear filter for a column
-  const clearFilter = (column: string) => {
+  // Clear all filters for a column
+  const clearColumnFilters = (column: string) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
       delete newFilters[column];
@@ -198,11 +260,11 @@ const DataPage = () => {
   };
 
   // Get the width class for a column
-  const getColumnWidthClass = (column: string) => {
+  const getColumnWidthClass = (column: string): string => {
     if (['church', 'products', 'active_task_ids', 'active_products'].includes(column)) {
-      return 'min-w-[250px]';
+      return 'min-w-[300px]';
     }
-    return 'min-w-[150px]';
+    return 'min-w-[180px]';
   };
 
   // Render array values as badges
@@ -271,10 +333,10 @@ const DataPage = () => {
             </div>
             
             <div className="flex-1 border rounded-md overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="min-w-full overflow-x-auto">
+              <ScrollArea className="h-full" orientation="both">
+                <div className="min-w-full">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
                         {columns.map((column) => (
                           <TableHead key={column} className={`relative ${getColumnWidthClass(column)}`}>
@@ -290,17 +352,39 @@ const DataPage = () => {
                                   <ArrowDown className="h-3 w-3" />
                                 )}
                               </button>
-                              <div className="ml-auto flex">
+                              <div className="ml-auto flex items-center">
+                                {selectedFilters[column]?.length > 0 && (
+                                  <Badge variant="secondary" className="mr-1 px-1 py-0 h-5">
+                                    {selectedFilters[column].length}
+                                  </Badge>
+                                )}
+                                
                                 {numberColumns.includes(column) ? (
                                   <Popover>
                                     <PopoverTrigger>
-                                      <div className="h-6 w-7 px-1 flex items-center justify-center rounded border">
+                                      <div className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
+                                        numberRangeFilters[column] && (
+                                          numberRangeFilters[column].min > getColumnRange(column).min || 
+                                          numberRangeFilters[column].max < getColumnRange(column).max
+                                        ) ? 'bg-blue-50 border-blue-200' : ''
+                                      }`}>
                                         <SlidersHorizontal className="h-3 w-3" />
                                       </div>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-64 p-4">
                                       <div className="space-y-4">
-                                        <h4 className="font-medium text-sm">{formatColumnName(column)} Range</h4>
+                                        <div className="flex justify-between items-center">
+                                          <h4 className="font-medium text-sm">{formatColumnName(column)} Range</h4>
+                                          <button 
+                                            onClick={() => {
+                                              const range = getColumnRange(column);
+                                              handleRangeChange(column, [range.min, range.max]);
+                                            }}
+                                            className="text-xs text-blue-600 hover:underline"
+                                          >
+                                            Reset
+                                          </button>
+                                        </div>
                                         {numberRangeFilters[column] && (
                                           <>
                                             <div className="pt-4">
@@ -325,24 +409,61 @@ const DataPage = () => {
                                     </PopoverContent>
                                   </Popover>
                                 ) : (
-                                  <Select
-                                    value={selectedFilters[column] || "all"}
-                                    onValueChange={(value) => 
-                                      value === "all" ? clearFilter(column) : handleFilterChange(column, value)
-                                    }
+                                  <Popover 
+                                    open={filterPopoverOpen[column]} 
+                                    onOpenChange={(open) => setFilterPopoverOpen({...filterPopoverOpen, [column]: open})}
                                   >
-                                    <SelectTrigger className="h-6 w-7 px-1">
-                                      <Filter className="h-3 w-3" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="all">All</SelectItem>
-                                      {getUniqueColumnValues(column).map((value) => (
-                                        <SelectItem key={value} value={value}>
-                                          {value}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                    <PopoverTrigger>
+                                      <div className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
+                                        selectedFilters[column]?.length ? 'bg-blue-50 border-blue-200' : ''
+                                      }`}>
+                                        <Filter className="h-3 w-3" />
+                                      </div>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-72 p-0" align="start">
+                                      <Command>
+                                        <CommandInput placeholder={`Search ${formatColumnName(column)}...`} />
+                                        <div className="flex items-center px-2 pt-1">
+                                          <div className="ml-auto flex gap-1">
+                                            <button
+                                              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                              onClick={() => clearColumnFilters(column)}
+                                            >
+                                              <X className="h-3 w-3" /> Clear
+                                            </button>
+                                          </div>
+                                        </div>
+                                        <CommandList className="p-2 max-h-52">
+                                          <CommandEmpty>No results found.</CommandEmpty>
+                                          <CommandGroup>
+                                            {getUniqueColumnValues(column).map((value) => {
+                                              const isSelected = selectedFilters[column]?.includes(value) || false;
+                                              return (
+                                                <CommandItem
+                                                  key={value}
+                                                  onSelect={() => {
+                                                    handleFilterSelectionChange(column, value, !isSelected);
+                                                  }}
+                                                  className="flex items-center gap-2"
+                                                >
+                                                  <div className="flex items-center gap-2 flex-1">
+                                                    <Checkbox 
+                                                      checked={isSelected}
+                                                      onCheckedChange={(checked) => {
+                                                        handleFilterSelectionChange(column, value, !!checked);
+                                                      }}
+                                                    />
+                                                    <span>{value}</span>
+                                                  </div>
+                                                  {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                                                </CommandItem>
+                                              );
+                                            })}
+                                          </CommandGroup>
+                                        </CommandList>
+                                      </Command>
+                                    </PopoverContent>
+                                  </Popover>
                                 )}
                               </div>
                             </div>
