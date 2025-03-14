@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
 import { MapPin, Settings, ChevronsUpDown, GalleryVerticalEnd, Award, Package, SunMoon, LogOut, SquareChartGantt, UsersRound } from "lucide-react";
@@ -83,10 +84,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               </SidebarItem>
               <SidebarItem 
                 icon={SquareChartGantt} 
-                active={location.pathname === "/projects"} 
-                onClick={() => handleNavigation("/projects")}
+                active={location.pathname === "/data"} 
+                onClick={() => handleNavigation("/data")}
               >
-                Projects
+                Data
               </SidebarItem>
               <SidebarItem 
                 icon={GalleryVerticalEnd} 
