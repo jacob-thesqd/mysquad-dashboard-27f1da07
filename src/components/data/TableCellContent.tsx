@@ -42,6 +42,11 @@ const isAutoAssignStatusField = (column: string): boolean => {
   return column === 'auto_assign_status';
 };
 
+// Check if a column is the time estimated minutes field
+const isTimeEstimatedField = (column: string): boolean => {
+  return column === 'time_estimated_mins';
+};
+
 // Get the badge color for auto-assign status value
 const getAutoAssignStatusColor = (value: string): string => {
   switch (value?.toLowerCase()) {
@@ -68,9 +73,9 @@ const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDa
   // Handle null/undefined values - return empty span
   if (value === null || value === undefined) return <span></span>;
 
-  // Handle time_estimated_mins separately as a number
-  if (column === 'time_estimated_mins') {
-    return <span>{value !== null ? String(value) : ""}</span>;
+  // Handle time_estimated_mins as a number
+  if (isTimeEstimatedField(column)) {
+    return <span>{Number.isFinite(Number(value)) ? Number(value) : ""}</span>;
   }
 
   // Handle boolean fields for auto_assign_override and aa_exclude

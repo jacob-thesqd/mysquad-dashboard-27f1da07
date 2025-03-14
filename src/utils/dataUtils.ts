@@ -58,9 +58,9 @@ export const extractUniqueArrayItems = (data: ProjectData[], column: string): st
 
 // Check if a column should be treated as a date
 export const isDateColumn = (column: string): boolean => {
-  // Exclude time_estimated_mins from date columns
+  // Explicitly exclude specific non-date columns that might be detected as dates
   if (column === 'time_estimated_mins') return false;
-  return DATE_COLUMNS.includes(column) || (column.includes('date') || column.includes('time'));
+  return DATE_COLUMNS.includes(column) || ((column.includes('date') || column.includes('time')) && column !== 'time_estimated_mins');
 };
 
 // Parse date value for filtering
