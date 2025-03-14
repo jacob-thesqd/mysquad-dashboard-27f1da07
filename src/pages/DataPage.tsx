@@ -32,12 +32,13 @@ const DataPage = () => {
   const [dateFilters, setDateFilters] = useState<Record<string, DateFilter>>({});
   const [filterPopoverOpen, setFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [dateFilterPopoverOpen, setDateFilterPopoverOpen] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState<string>("active");
 
-  // Fetch data from Supabase
+  // Fetch active projects data from Supabase
   const {
-    data: projects = [],
-    isLoading,
-    error
+    data: activeProjects = [],
+    isLoading: isActiveLoading,
+    error: activeError
   } = useQuery({
     queryKey: ["activeProjects"],
     queryFn: async () => {
@@ -46,60 +47,86 @@ const DataPage = () => {
         throw new Error(error.message);
       }
       return data as ProjectData[];
-    }
+    },
+    enabled: activeTab === "active"
   });
+
+  // Fetch master projects data from Supabase
+  const {
+    data: masterProjects = [],
+    isLoading: isMasterLoading,
+    error: masterError
+  } = useQuery({
+    queryKey: ["masterProjects"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("master_project_view_mv").select("*");
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data as ProjectData[];
+    },
+    enabled: activeTab === "master"
+  });
+
+  // Get current projects based on active tab
+  const currentProjects = useMemo(() => {
+    return activeTab === "active" ? activeProjects : masterProjects;
+  }, [activeTab, activeProjects, masterProjects]);
+
+  const isLoading = activeTab === "active" ? isActiveLoading : isMasterLoading;
+  const error = activeTab === "active" ? activeError : masterError;
 
   // Get all column names from first project
   const columns = useMemo(() => {
-    if (projects.length === 0) return [];
-    return Object.keys(projects[0]).filter(column => !HIDDEN_COLUMNS.includes(column));
-  }, [projects]);
+    if (currentProjects.length === 0) return [];
+    return Object.keys(currentProjects[0]).filter(column => !HIDDEN_COLUMNS.includes(column));
+  }, [currentProjects]);
 
   // Identify number columns for slider filtering
   const numberColumns = useMemo(() => 
     columns.filter(column => 
-      projects.length > 0 && 
-      isNumber(projects[0][column]) && 
-      !isArrayColumn(projects, column) && 
+      currentProjects.length > 0 && 
+      isNumber(currentProjects[0][column]) && 
+      !isArrayColumn(currentProjects, column) && 
       column !== 'account' // Exclude 'account' column from number filters
     ), 
-    [columns, projects.length]
+    [columns, currentProjects.length]
   );
 
   // Identify date columns for date filtering
   const dateColumns = useMemo(() => 
     columns.filter(column => 
-      projects.length > 0 && 
+      currentProjects.length > 0 && 
       isDateColumn(column)
     ), 
-    [columns, projects.length]
+    [columns, currentProjects.length]
   );
 
   // Identify array columns for special filtering
   const arrayColumns = useMemo(() => 
     columns.filter(column => 
-      projects.length > 0 && 
-      isArrayColumn(projects, column)
+      currentProjects.length > 0 && 
+      isArrayColumn(currentProjects, column)
     ), 
-    [columns, projects.length]
+    [columns, currentProjects.length]
   );
 
   // Initialize range filters for number columns
   useEffect(() => {
-    if (projects.length > 0) {
+    if (currentProjects.length > 0) {
       const initialRanges: Record<string, { min: number; max: number }> = {};
       numberColumns.forEach(column => {
-        const range = getColumnRange(projects, column);
+        const range = getColumnRange(currentProjects, column);
         initialRanges[column] = range;
       });
       setNumberRangeFilters(initialRanges);
     }
-  }, [projects.length > 0, numberColumns.join(',')]);
+  }, [currentProjects.length > 0, numberColumns.join(',')]);
 
   // Filter and sort projects
   const filteredProjects = useMemo(() => 
-    filterProjects(projects, searchTerm, selectedFilters, numberRangeFilters, dateFilters),
-    [projects, searchTerm, selectedFilters, numberRangeFilters, dateFilters]
+    filterProjects(currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters),
+    [currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters]
   );
 
   const sortedProjects = useMemo(() => 
@@ -146,7 +173,7 @@ const DataPage = () => {
 
   // Get unique values for a column for filter dropdowns
   const getUniqueValues = (column: string): string[] => {
-    return getUniqueColumnValues(projects, column);
+    return getUniqueColumnValues(currentProjects, column);
   };
 
   // Handle number range filter change
@@ -177,9 +204,20 @@ const DataPage = () => {
     });
   };
 
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setSortColumn(null);
+    setSortDirection("asc");
+    setSelectedFilters({});
+    setDateFilters({});
+    setFilterPopoverOpen({});
+    setDateFilterPopoverOpen({});
+  };
+
   return (
     <div className="h-full w-full flex flex-col">
-      <Tabs defaultValue="active" className="w-full h-full">
+      <Tabs defaultValue="active" className="w-full h-full" onValueChange={handleTabChange}>
         <div className="border-b px-6 py-2">
           <TabsList>
             <TabsTrigger value="active" className="flex items-center gap-2">
@@ -208,7 +246,7 @@ const DataPage = () => {
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">
-                  Showing {sortedProjects.length} of {projects.length} projects
+                  Showing {sortedProjects.length} of {activeProjects.length} projects
                 </span>
               </div>
             </div>
@@ -238,9 +276,48 @@ const DataPage = () => {
           </div>
         </TabsContent>
         
-        <TabsContent value="master" className="h-full">
-          <div className="p-4 h-full flex items-center justify-center">
-            <p className="text-muted-foreground">Master Projects View will be implemented in the future.</p>
+        <TabsContent value="master" className="flex-1 h-[calc(100%-3rem)]">
+          <div className="p-4 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <div className="relative w-80">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search projects..." 
+                  className="pl-8" 
+                  value={searchTerm} 
+                  onChange={e => setSearchTerm(e.target.value)} 
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">
+                  Showing {sortedProjects.length} of {masterProjects.length} projects
+                </span>
+              </div>
+            </div>
+            
+            <DataTable 
+              projects={sortedProjects}
+              columns={columns}
+              dateColumns={dateColumns}
+              arrayColumns={arrayColumns}
+              isLoading={isLoading}
+              error={error}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              selectedFilters={selectedFilters}
+              dateFilters={dateFilters}
+              filterPopoverOpen={filterPopoverOpen}
+              dateFilterPopoverOpen={dateFilterPopoverOpen}
+              handleSort={handleSort}
+              getUniqueColumnValues={getUniqueValues}
+              handleFilterSelectionChange={handleFilterSelectionChange}
+              clearColumnFilters={clearColumnFilters}
+              setFilterPopoverOpen={setFilterPopoverOpen}
+              setDateFilterPopoverOpen={setDateFilterPopoverOpen}
+              applyDateFilter={applyDateFilter}
+              clearDateFilter={clearDateFilter}
+            />
           </div>
         </TabsContent>
       </Tabs>
