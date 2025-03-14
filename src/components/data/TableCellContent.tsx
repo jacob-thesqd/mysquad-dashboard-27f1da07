@@ -44,7 +44,6 @@ const isAutoAssignStatusField = (column: string): boolean => {
 
 // Check if a column is the time estimated minutes field
 const isTimeEstimatedField = (column: string): boolean => {
-  console.log('col: ',column)
   return column === 'time_estimated_mins';
 };
 
@@ -76,6 +75,7 @@ const TableCellContent: React.FC<TableCellContentProps> = ({ value, column, isDa
 
   // Handle time_estimated_mins as a number
   if (isTimeEstimatedField(column)) {
+    console.log('val:',val)
     return <span>{Number.isFinite(Number(value)) ? Number(value) : ""}</span>;
   }
 
