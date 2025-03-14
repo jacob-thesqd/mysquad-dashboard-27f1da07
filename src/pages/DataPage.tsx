@@ -42,15 +42,6 @@ import { format, isValid, parseISO } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { Calendar } from "@/components/ui/calendar";
 import { 
-  Dialog, 
-  DialogTrigger, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { 
   Form,
   FormField,
   FormItem,
@@ -66,7 +57,7 @@ type ProjectData = {
 };
 
 // Columns to hide
-const HIDDEN_COLUMNS = ['active_products', 'aa_trigger', 'last_activated_by', 'last_deactivated_by'];
+const HIDDEN_COLUMNS = ['active_products', 'aa_trigger', 'last_activated_by', 'last_deactivated_by', 'cu_queued'];
 
 // Columns that should be treated as dates for formatting
 const DATE_COLUMNS = [
@@ -233,8 +224,8 @@ const DataPage = () => {
   const [numberRangeFilters, setNumberRangeFilters] = useState<Record<string, { min: number, max: number }>>({});
   const [dateFilters, setDateFilters] = useState<Record<string, DateFilter>>({});
   const [filterPopoverOpen, setFilterPopoverOpen] = useState<Record<string, boolean>>({});
-  const [activeFilterDialog, setActiveFilterDialog] = useState<string | null>(null);
-
+  const [dateFilterPopoverOpen, setDateFilterPopoverOpen] = useState<Record<string, boolean>>({});
+  
   // Form for date filtering
   const dateFilterForm = useForm({
     defaultValues: {
@@ -320,8 +311,8 @@ const DataPage = () => {
     }
   }, [projects.length > 0, numberColumns.join(',')]);
 
-  // Open date filter dialog
-  const openDateFilterDialog = (column: string) => {
+  // Open date filter popover and initialize form
+  const openDateFilterPopover = (column: string) => {
     // Set default values
     const currentFilter = dateFilters[column] || { operator: 'eq' };
     dateFilterForm.reset({
@@ -330,7 +321,7 @@ const DataPage = () => {
       endDate: currentFilter.endValue
     });
     
-    setActiveFilterDialog(column);
+    setDateFilterPopoverOpen({...dateFilterPopoverOpen, [column]: true});
   };
 
   // Apply date filter
@@ -346,7 +337,7 @@ const DataPage = () => {
       }
     }));
     
-    setActiveFilterDialog(null);
+    setDateFilterPopoverOpen({...dateFilterPopoverOpen, [column]: false});
   };
 
   // Clear date filter
@@ -667,17 +658,116 @@ const DataPage = () => {
                               </button>
                               <div className="ml-auto flex items-center">
                                 {isDateColumn(column) ? (
-                                  // Date filter UI
+                                  // Date filter UI as popover
                                   <>
                                     {renderDateFilterBadge(column)}
-                                    <button
-                                      onClick={() => openDateFilterDialog(column)}
-                                      className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
-                                        dateFilters[column] ? 'bg-blue-50 border-blue-200' : ''
-                                      }`}
+                                    <Popover 
+                                      open={dateFilterPopoverOpen[column]} 
+                                      onOpenChange={(open) => setDateFilterPopoverOpen({...dateFilterPopoverOpen, [column]: open})}
                                     >
-                                      <CalendarIcon className="h-3 w-3" />
-                                    </button>
+                                      <PopoverTrigger>
+                                        <div className={`h-6 w-7 px-1 flex items-center justify-center rounded border ${
+                                          dateFilters[column] ? 'bg-blue-50 border-blue-200' : ''
+                                        }`}>
+                                          <CalendarIcon className="h-3 w-3" />
+                                        </div>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-72 p-4" align="start">
+                                        <Form {...dateFilterForm}>
+                                          <div className="space-y-4">
+                                            <FormField
+                                              control={dateFilterForm.control}
+                                              name="operator"
+                                              render={({ field }) => (
+                                                <FormItem className="space-y-2">
+                                                  <FormLabel className="text-xs font-medium">Filter type</FormLabel>
+                                                  <Select
+                                                    value={field.value}
+                                                    onValueChange={field.onChange}
+                                                  >
+                                                    <SelectTrigger className="h-8 text-xs">
+                                                      <SelectValue placeholder="Select operator" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                      {DATE_OPERATORS.map(op => (
+                                                        <SelectItem key={op.value} value={op.value} className="text-xs">
+                                                          {op.label}
+                                                        </SelectItem>
+                                                      ))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                </FormItem>
+                                              )}
+                                            />
+                                            
+                                            {dateFilterForm.watch('operator') !== 'null' && 
+                                            dateFilterForm.watch('operator') !== 'notnull' && (
+                                              <FormField
+                                                control={dateFilterForm.control}
+                                                name="date"
+                                                render={({ field }) => (
+                                                  <FormItem className="space-y-2">
+                                                    <FormLabel className="text-xs font-medium">
+                                                      {dateFilterForm.watch('operator') === 'between' ? 'Start date' : 'Date'}
+                                                    </FormLabel>
+                                                    <div>
+                                                      <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        className="rounded-md border pointer-events-auto"
+                                                      />
+                                                    </div>
+                                                  </FormItem>
+                                                )}
+                                              />
+                                            )}
+                                            
+                                            {dateFilterForm.watch('operator') === 'between' && (
+                                              <FormField
+                                                control={dateFilterForm.control}
+                                                name="endDate"
+                                                render={({ field }) => (
+                                                  <FormItem className="space-y-2">
+                                                    <FormLabel className="text-xs font-medium">End date</FormLabel>
+                                                    <div>
+                                                      <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        className="rounded-md border pointer-events-auto"
+                                                      />
+                                                    </div>
+                                                  </FormItem>
+                                                )}
+                                              />
+                                            )}
+                                          </div>
+                                          
+                                          <div className="flex justify-between mt-4 gap-2">
+                                            <Button 
+                                              variant="outline" 
+                                              size="sm"
+                                              onClick={() => {
+                                                clearDateFilter(column);
+                                                setDateFilterPopoverOpen({...dateFilterPopoverOpen, [column]: false});
+                                              }}
+                                              className="text-xs"
+                                            >
+                                              Clear
+                                            </Button>
+                                            <Button
+                                              type="button"
+                                              size="sm"
+                                              onClick={() => applyDateFilter(column)}
+                                              className="text-xs"
+                                            >
+                                              Apply
+                                            </Button>
+                                          </div>
+                                        </Form>
+                                      </PopoverContent>
+                                    </Popover>
                                   </>
                                 ) : (
                                   // Regular filter UI for non-date columns
@@ -797,111 +887,6 @@ const DataPage = () => {
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* Date Filter Dialog */}
-      <Dialog open={!!activeFilterDialog} onOpenChange={(open) => !open && setActiveFilterDialog(null)}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Filter by {activeFilterDialog ? formatColumnName(activeFilterDialog) : ''}</DialogTitle>
-            <DialogDescription>
-              Choose a filter type and select dates to filter the data.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <Form {...dateFilterForm}>
-            <div className="grid gap-4 py-4">
-              <FormField
-                control={dateFilterForm.control}
-                name="operator"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>Filter type</FormLabel>
-                    <FormControl>
-                      <RadioGroup 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                        className="flex flex-col space-y-1"
-                      >
-                        {DATE_OPERATORS.map(op => (
-                          <div key={op.value} className="flex items-center space-x-2">
-                            <RadioGroupItem value={op.value} id={op.value} />
-                            <label htmlFor={op.value} className="text-sm font-medium">{op.label}</label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              {dateFilterForm.watch('operator') !== 'null' && 
-               dateFilterForm.watch('operator') !== 'notnull' && (
-                <FormField
-                  control={dateFilterForm.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>{dateFilterForm.watch('operator') === 'between' ? 'Start date' : 'Date'}</FormLabel>
-                      <div className="grid gap-2">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          className="rounded-md border pointer-events-auto"
-                        />
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              )}
-              
-              {dateFilterForm.watch('operator') === 'between' && (
-                <FormField
-                  control={dateFilterForm.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>End date</FormLabel>
-                      <div className="grid gap-2">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          className="rounded-md border pointer-events-auto"
-                        />
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  if (activeFilterDialog) {
-                    clearDateFilter(activeFilterDialog);
-                  }
-                  setActiveFilterDialog(null);
-                }}
-              >
-                Clear
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  if (activeFilterDialog) {
-                    applyDateFilter(activeFilterDialog);
-                  }
-                }}
-              >
-                Apply Filter
-              </Button>
-            </DialogFooter>
-          </Form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
