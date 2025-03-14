@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   ColumnDef,
@@ -7,6 +8,8 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  SortingState,
+  ColumnFiltersState,
 } from '@tanstack/react-table';
 
 import {
@@ -16,10 +19,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { ProjectData } from '@/utils/dataUtils';
-import { DATE_COLUMNS, isDateColumn } from '@/utils/dataUtils';
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { ProjectData, isDateColumn } from '@/utils/dataUtils';
 import TableCellContent from './TableCellContent';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
@@ -27,11 +29,11 @@ import {
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { ArrowDown, ArrowUp, Columns } from 'lucide-react';
 import { NumberRangeFilter } from './NumberRangeFilter';
-import { DateFilterPopover } from './DateFilterPopover';
+import DateFilterPopover from './DateFilterPopover';
 
 interface DataTableProps {
   data: ProjectData[];
@@ -42,10 +44,10 @@ const DataTable: React.FC<DataTableProps> = ({ data, columns }) => {
   const [globalFilter, setGlobalFilter] = React.useState("");
   const debouncedGlobalFilter = useDebounce(globalFilter, 500);
   const [columnVisibility, setColumnVisibility] = React.useState({});
-  const [columnFilters, setColumnFilters] = React.useState<{ [columnId: string]: string[] }>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [numberRangeFilters, setNumberRangeFilters] = React.useState<{ [columnId: string]: { min: number; max: number } }>({});
   const [dateFilters, setDateFilters] = React.useState<{ [columnId: string]: { operator: string; value: Date | null; endValue?: Date | null } }>({});
-  const [sorting, setSorting] = React.useState([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const table = useReactTable({
     data,
@@ -109,7 +111,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, columns }) => {
                 {headerGroup.headers.map(header => {
                   return (
                     <TableHead key={header.id} className="w-[200px]">
-                      {header.isSortable ? (
+                      {header.column.getCanSort() ? (
                         <Button
                           variant="ghost"
                           onClick={header.column.getToggleSortingHandler()}
@@ -132,30 +134,28 @@ const DataTable: React.FC<DataTableProps> = ({ data, columns }) => {
                         )
                       )}
                       {/* Render column-specific filter components */}
-                      {header.column.columnDef.id && (
+                      {header.column.id && (
                         <>
                           {/* Number Range Filter */}
-                          {typeof data[0][header.column.columnDef.id] === 'number' && (
+                          {typeof data[0]?.[header.column.id] === 'number' && (
                             <NumberRangeFilter
-                              columnId={header.column.columnDef.id}
+                              columnId={header.column.id}
                               onRangeChange={(min, max) => {
                                 setNumberRangeFilters(prev => ({
                                   ...prev,
-                                  [header.column.columnDef.id]: { min, max },
+                                  [header.column.id]: { min, max },
                                 }));
                               }}
                             />
                           )}
                           {/* Date Filter */}
-                          {isDateColumn(header.column.columnDef.id) && (
+                          {isDateColumn(header.column.id) && (
                             <DateFilterPopover
-                              columnId={header.column.columnDef.id}
-                              onFilterChange={(operator, value, endValue) => {
-                                setDateFilters(prev => ({
-                                  ...prev,
-                                  [header.column.columnDef.id]: { operator, value, endValue },
-                                }));
-                              }}
+                              column={header.column.id}
+                              isOpen={false}
+                              onOpenChange={() => {}}
+                              onApplyFilter={() => {}}
+                              onClearFilter={() => {}}
                             />
                           )}
                         </>
