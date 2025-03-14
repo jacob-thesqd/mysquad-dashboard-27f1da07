@@ -299,8 +299,11 @@ const DataPage = () => {
 
   // Get the width class for a column
   const getColumnWidthClass = (column: string): string => {
-    if (['church', 'products', 'active_task_ids'].includes(column)) {
-      return 'min-w-[300px]';
+    if (['products', 'active_task_ids'].includes(column)) {
+      return 'w-[250px] max-w-[250px]';
+    }
+    if (['church'].includes(column)) {
+      return 'w-[300px] max-w-[300px]';
     }
     return 'min-w-[180px]';
   };
