@@ -1,7 +1,5 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@supabase/supabase-js";
 import { 
   Table, 
   TableHeader, 
@@ -20,11 +18,7 @@ import {
 import { CheckCircle, Layers, Search, ArrowUp, ArrowDown, Filter } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-
-// Initialize Supabase client
-const supabaseUrl = "https://wttgwoxlezqoyzmesekt.supabase.co";
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "@/integrations/supabase/client";
 
 // Define type for project data
 type ProjectData = {
