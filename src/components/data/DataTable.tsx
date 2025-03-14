@@ -70,7 +70,7 @@ const DataTable: React.FC<DataTableProps> = ({
   clearDateFilter
 }) => {
   return (
-    <div className="flex-1 border rounded-md overflow-hidden">
+    <div className="flex-1 border rounded-md overflow-hidden mb-2">
       <ScrollArea className="h-full" orientation="both">
         <div className="min-w-full">
           <Table>
