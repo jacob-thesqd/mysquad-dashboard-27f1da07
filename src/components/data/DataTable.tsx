@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import VirtualizedTable from "./VirtualizedTable";
+import { DateFilter } from "./DateFilterPopover";
 
 // Default column width
 const DEFAULT_COLUMN_WIDTH = 180;
