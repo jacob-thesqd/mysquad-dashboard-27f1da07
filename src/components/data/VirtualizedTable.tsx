@@ -168,7 +168,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
   });
 
   // For empty loading or error states
-  if (isLoading || error || data.length === 0) {
+  if (isLoading) {
     return (
       <div ref={parentRef} className="flex-1 border rounded-md overflow-hidden mb-2">
         <ScrollArea className="h-full" orientation="both">
@@ -196,9 +196,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
               <TableBody>
                 <TableRow>
                   <TableCell colSpan={columns.length} className="text-center py-8">
-                    {isLoading ? "Loading data..." : 
-                     error ? `Error loading data: ${(error as Error).message}` : 
-                     "No projects found"}
+                    Loading data...
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -208,6 +206,87 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div ref={parentRef} className="flex-1 border rounded-md overflow-hidden mb-2">
+        <ScrollArea className="h-full" orientation="both">
+          <div className="min-w-full">
+            <Table ref={tableRef}>
+              <TableHeader className="sticky top-0 bg-background z-10">
+                <TableRow>
+                  {orderedColumns.map(column => (
+                    <TableHead 
+                      key={column} 
+                      className="relative select-none group"
+                      style={{ 
+                        width: `${columnWidths[column] || DEFAULT_COLUMN_WIDTH}px`, 
+                        minWidth: `${columnWidths[column] || DEFAULT_COLUMN_WIDTH}px`,
+                        maxWidth: `${columnWidths[column] || DEFAULT_COLUMN_WIDTH}px`,
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        {formatColumnName(column)}
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="text-center py-8">
+                    Error loading data: {(error as Error).message}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div ref={parentRef} className="flex-1 border rounded-md overflow-hidden mb-2">
+        <ScrollArea className="h-full" orientation="both">
+          <div className="min-w-full">
+            <Table ref={tableRef}>
+              <TableHeader className="sticky top-0 bg-background z-10">
+                <TableRow>
+                  {orderedColumns.map(column => (
+                    <TableHead 
+                      key={column} 
+                      className="relative select-none group"
+                      style={{ 
+                        width: `${columnWidths[column] || DEFAULT_COLUMN_WIDTH}px`, 
+                        minWidth: `${columnWidths[column] || DEFAULT_COLUMN_WIDTH}px`,
+                        maxWidth: `${columnWidths[column] || DEFAULT_COLUMN_WIDTH}px`,
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        {formatColumnName(column)}
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="text-center py-8">
+                    No projects found
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
+      </div>
+    );
+  }
+
+  console.log("Data to render:", data.length, "items");
+  console.log("First row sample:", data[0]);
 
   return (
     <div ref={parentRef} className="flex-1 border rounded-md overflow-hidden mb-2 h-full">
@@ -297,6 +376,11 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
               {rowVirtualizer.getVirtualItems().map(virtualRow => {
                 const rowIndex = virtualRow.index;
                 const project = data[rowIndex];
+                
+                if (!project) {
+                  console.warn(`No project found at index ${rowIndex}`);
+                  return null;
+                }
                 
                 return (
                   <TableRow 

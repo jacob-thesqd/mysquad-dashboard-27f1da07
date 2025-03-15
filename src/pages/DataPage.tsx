@@ -70,14 +70,29 @@ const DataPage = () => {
   const {
     data: activeProjects = [],
     isLoading: isActiveLoading,
-    error: activeError
+    error: activeError,
+    refetch: refetchActive
   } = useDataFetching(["activeProjects"], "active_projects_mv");
 
   const {
     data: masterProjects = [],
     isLoading: isMasterLoading,
-    error: masterError
+    error: masterError,
+    refetch: refetchMaster
   } = useDataFetching(["masterProjects"], "master_project_view_mv");
+
+  // Debug logs to check data fetching
+  useEffect(() => {
+    console.log("Active projects data:", activeProjects.length, "items");
+    if (activeProjects.length > 0) {
+      console.log("Active projects sample:", activeProjects[0]);
+    }
+
+    console.log("Master projects data:", masterProjects.length, "items");
+    if (masterProjects.length > 0) {
+      console.log("Master projects sample:", masterProjects[0]);
+    }
+  }, [activeProjects, masterProjects]);
 
   const currentProjects = useMemo(() => {
     return activeTab === "active" ? activeProjects : masterProjects;
@@ -137,15 +152,26 @@ const DataPage = () => {
     }
   }, [currentProjects.length, numberColumns, numberRangeFilters]);
 
-  const filteredProjects = useMemo(() => 
-    filterProjects(currentProjects, debouncedSearchTerm, selectedFilters, numberRangeFilters, dateFilters),
-    [currentProjects, debouncedSearchTerm, selectedFilters, numberRangeFilters, dateFilters]
-  );
+  const filteredProjects = useMemo(() => {
+    console.log("Filtering projects:", currentProjects.length);
+    return filterProjects(currentProjects, debouncedSearchTerm, selectedFilters, numberRangeFilters, dateFilters);
+  }, [currentProjects, debouncedSearchTerm, selectedFilters, numberRangeFilters, dateFilters]);
 
-  const sortedProjects = useMemo(() => 
-    sortProjects(filteredProjects, sortColumn, sortDirection),
-    [filteredProjects, sortColumn, sortDirection]
-  );
+  const sortedProjects = useMemo(() => {
+    console.log("Sorting filtered projects:", filteredProjects.length);
+    return sortProjects(filteredProjects, sortColumn, sortDirection);
+  }, [filteredProjects, sortColumn, sortDirection]);
+
+  // Manual refresh handler
+  const handleRefresh = useCallback(() => {
+    if (activeTab === "active") {
+      refetchActive();
+      toast.success("Refreshing active projects data");
+    } else {
+      refetchMaster();
+      toast.success("Refreshing master projects data");
+    }
+  }, [activeTab, refetchActive, refetchMaster]);
 
   const handleSort = useCallback((column: string) => {
     setSortColumn(prevColumn => {
@@ -259,11 +285,19 @@ const DataPage = () => {
                   onChange={e => setSearchTerm(e.target.value)} 
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  Showing {sortedProjects.length} of {activeProjects.length} projects
-                </span>
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={handleRefresh} 
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Refresh Data
+                </button>
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    Showing {sortedProjects.length} of {activeProjects.length} projects
+                  </span>
+                </div>
               </div>
             </div>
             
@@ -304,11 +338,19 @@ const DataPage = () => {
                   onChange={e => setSearchTerm(e.target.value)} 
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  Showing {sortedProjects.length} of {masterProjects.length} projects
-                </span>
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={handleRefresh} 
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Refresh Data
+                </button>
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    Showing {sortedProjects.length} of {masterProjects.length} projects
+                  </span>
+                </div>
               </div>
             </div>
             
