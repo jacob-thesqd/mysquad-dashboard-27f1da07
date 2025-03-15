@@ -25,27 +25,14 @@ export function useDataFetching(queryKey: QueryKey, tableName: AllowedTable, opt
     queryKey,
     queryFn: async () => {
       try {
-        console.log(`Fetching data from ${tableName}...`);
-        
-        // Simplified approach to get all data without pagination or complex checks
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('*');
-        
-        if (error) {
-          console.error(`Error fetching data from ${tableName}:`, error);
-          throw new Error(error.message);
+        if (tableName === "active_projects_mv") {
+          const { data, error } = await supabase.from(tableName).select("*");
+          if (error) throw new Error(error.message);
+          return data as ProjectData[];
+        } else {
+          // For master_project_view_mv, use pagination to fetch all rows
+          return await fetchAllPages(tableName);
         }
-        
-        console.log(`Successfully fetched ${data?.length || 0} rows from ${tableName}`, data ? data[0] : null);
-        
-        // Force check that data is an array
-        if (!data || !Array.isArray(data)) {
-          console.error(`Received non-array data from ${tableName}`, data);
-          return [];
-        }
-        
-        return data as ProjectData[];
       } catch (err) {
         console.error(`Error fetching data from ${tableName}:`, err);
         toast.error(`Failed to load data: ${(err as Error).message}`);
@@ -57,10 +44,63 @@ export function useDataFetching(queryKey: QueryKey, tableName: AllowedTable, opt
     ...options
   });
 
-  return { 
-    data: Array.isArray(data) ? data : [], 
-    isLoading, 
-    error, 
-    refetch 
-  };
+  // Load data in the background when the component mounts
+  useEffect(() => {
+    if (isInitialLoad && options.enabled) {
+      // Prefetch and cache data
+      queryClient.prefetchQuery({
+        queryKey,
+        queryFn: async () => {
+          try {
+            if (tableName === "active_projects_mv") {
+              const { data, error } = await supabase.from(tableName).select("*");
+              if (error) throw new Error(error.message);
+              return data as ProjectData[];
+            } else {
+              return await fetchAllPages(tableName);
+            }
+          } catch (err) {
+            console.error(`Error prefetching data from ${tableName}:`, err);
+            return [];
+          }
+        },
+        staleTime: CACHE_TIME
+      });
+      setIsInitialLoad(false);
+    }
+  }, [queryClient, queryKey, tableName, isInitialLoad, options.enabled]);
+
+  return { data, isLoading, error, refetch };
+}
+
+// Helper function to fetch all pages of data
+async function fetchAllPages(tableName: AllowedTable): Promise<ProjectData[]> {
+  const pageSize = 1000;
+  let page = 0;
+  let hasMore = true;
+  let allData: ProjectData[] = [];
+
+  while (hasMore) {
+    const start = page * pageSize;
+    const { data, error, count } = await supabase
+      .from(tableName)
+      .select("*", { count: "exact" })
+      .range(start, start + pageSize - 1);
+
+    if (error) throw new Error(error.message);
+    
+    if (data && data.length > 0) {
+      allData = [...allData, ...(data as ProjectData[])];
+      page++;
+      
+      // Check if we've received all data
+      if (count !== null && allData.length >= count) {
+        hasMore = false;
+      }
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allData;
 }
