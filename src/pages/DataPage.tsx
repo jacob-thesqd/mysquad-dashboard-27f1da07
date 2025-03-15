@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, CheckCircle, Layers } from "lucide-react";
@@ -37,17 +37,13 @@ const DataPage = () => {
     data: activeProjects = [],
     isLoading: isActiveLoading,
     error: activeError
-  } = useDataFetching(["activeProjects"], "active_projects_mv", {
-    enabled: activeTab === "active"
-  });
+  } = useDataFetching(["activeProjects"], "active_projects_mv");
 
   const {
     data: masterProjects = [],
     isLoading: isMasterLoading,
     error: masterError
-  } = useDataFetching(["masterProjects"], "master_project_view_mv", {
-    enabled: activeTab === "master"
-  });
+  } = useDataFetching(["masterProjects"], "master_project_view_mv");
 
   const currentProjects = useMemo(() => {
     return activeTab === "active" ? activeProjects : masterProjects;
