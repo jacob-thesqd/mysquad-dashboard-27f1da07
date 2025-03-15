@@ -59,6 +59,14 @@ const DataTable: React.FC<DataTableProps> = (props) => {
     }
   }, [props.columns, columnOrder.length]);
 
+  // Add debug logging for render
+  useEffect(() => {
+    console.log("Data to render:", props.data?.length || 0, "items");
+    if (props.data && props.data.length > 0) {
+      console.log("First row sample:", props.data[0]);
+    }
+  }, [props.data]);
+
   const handleColumnResize = (column: string, width: number) => {
     setColumnWidths(prev => ({
       ...prev,
@@ -67,6 +75,7 @@ const DataTable: React.FC<DataTableProps> = (props) => {
   };
 
   const handleColumnReorder = (newOrder: string[]) => {
+    console.log("New column order:", newOrder);
     setColumnOrder(newOrder);
   };
 

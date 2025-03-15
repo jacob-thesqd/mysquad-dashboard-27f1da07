@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -19,8 +18,8 @@ import {
 } from "@/utils/dataUtils";
 import { useDataFetching } from "@/hooks/useDataFetching";
 import { toast } from "sonner";
+import { DateFilter } from "@/components/data/DateFilterPopover";
 
-// Debounce function to limit how often a function can be called
 const debounce = <T extends (...args: any[]) => any>(
   func: T,
   wait: number
@@ -49,7 +48,6 @@ const DataPage = () => {
   const [activeTab, setActiveTab] = useState<string>("active");
   const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
   
-  // Debounced search handler
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -74,7 +72,6 @@ const DataPage = () => {
     refetch: refetchMaster
   } = useDataFetching(["masterProjects", lastRefreshTime], "master_project_view_mv");
 
-  // Debug logs to check data fetching
   useEffect(() => {
     console.log("Active projects data:", activeProjects);
     console.log("Active projects length:", activeProjects.length);
@@ -89,7 +86,6 @@ const DataPage = () => {
     }
   }, [activeProjects, masterProjects]);
 
-  // If there's an error, log it
   useEffect(() => {
     if (activeError) console.error("Active projects error:", activeError);
     if (masterError) console.error("Master projects error:", masterError);
@@ -135,7 +131,6 @@ const DataPage = () => {
     [columns, currentProjects]
   );
 
-  // Initialize number range filters
   useEffect(() => {
     if (currentProjects.length > 0 && numberColumns.length > 0) {
       const initialRanges: Record<string, { min: number; max: number }> = {};
@@ -167,7 +162,6 @@ const DataPage = () => {
     return sortProjects(filteredProjects, sortColumn, sortDirection);
   }, [filteredProjects, sortColumn, sortDirection]);
 
-  // Manual refresh handler
   const handleRefresh = useCallback(() => {
     setLastRefreshTime(new Date());
     toast.success(`Refreshing ${activeTab} projects data`);
