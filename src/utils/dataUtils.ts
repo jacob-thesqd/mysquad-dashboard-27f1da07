@@ -1,4 +1,3 @@
-
 import { parseISO, isValid } from "date-fns";
 import { DateFilter } from "@/components/data/DateFilterPopover";
 
@@ -133,84 +132,134 @@ export const getColumnRange = (data: ProjectData[], column: string) => {
   return { min, max };
 };
 
-// Filter projects based on search term, column filters, number ranges, and date filters
-export const filterProjects = (
-  projects: ProjectData[],
-  searchTerm: string,
-  selectedFilters: Record<string, string[]>,
-  numberRangeFilters: Record<string, { min: number; max: number }>,
-  dateFilters: Record<string, DateFilter>
-): ProjectData[] => {
-  return projects.filter(project => {
-    // If no search term, continue to other filters
-    if (searchTerm && !Object.values(project).some(value => 
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
-    )) {
-      return false;
+// Memoization helper for expensive operations
+const memoize = <T extends (...args: any[]) => any>(
+  func: T, 
+  resolver?: (...args: Parameters<T>) => string
+): T => {
+  const cache = new Map<string, ReturnType<T>>();
+  
+  return ((...args: Parameters<T>): ReturnType<T> => {
+    const key = resolver ? resolver(...args) : JSON.stringify(args);
+    if (cache.has(key)) {
+      return cache.get(key) as ReturnType<T>;
     }
+    
+    const result = func(...args);
+    cache.set(key, result);
+    return result;
+  }) as T;
+};
 
-    // Apply column-specific filters
-    for (const [column, filterValues] of Object.entries(selectedFilters)) {
-      if (!filterValues || filterValues.length === 0) continue;
-      if (isArrayColumn([project], column)) {
-        // For array columns, check if any selected filter value exists in the array
-        if (!Array.isArray(project[column]) || !project[column].some((val: any) => 
-          filterValues.includes(String(val))
+// Filter projects based on search term, column filters, number ranges, and date filters
+export const memoizedFilterProjects = memoize(
+  (
+    projects: ProjectData[],
+    searchTerm: string,
+    selectedFilters: Record<string, string[]>,
+    numberRangeFilters: Record<string, { min: number; max: number }>,
+    dateFilters: Record<string, DateFilter>
+  ): ProjectData[] => {
+    // Early return for common cases
+    if (
+      !searchTerm && 
+      Object.keys(selectedFilters).length === 0 && 
+      Object.keys(dateFilters).length === 0
+    ) {
+      return projects;
+    }
+    
+    return projects.filter(project => {
+      // Search term filtering
+      if (searchTerm) {
+        const searchTermLower = searchTerm.toLowerCase();
+        const matchesSearch = Object.values(project).some(value => 
+          value !== null && String(value).toLowerCase().includes(searchTermLower)
+        );
+        
+        if (!matchesSearch) return false;
+      }
+
+      // Apply column-specific filters
+      for (const [column, filterValues] of Object.entries(selectedFilters)) {
+        if (!filterValues || filterValues.length === 0) continue;
+        
+        if (isArrayColumn([project], column)) {
+          // For array columns, check if any selected filter value exists in the array
+          if (!Array.isArray(project[column]) || !project[column].some((val: any) => 
+            filterValues.includes(String(val))
+          )) {
+            return false;
+          }
+        } else {
+          // For non-array columns, check if the value matches any of the selected filters
+          if (!filterValues.includes(String(project[column]))) {
+            return false;
+          }
+        }
+      }
+
+      // Apply number range filters
+      for (const [column, range] of Object.entries(numberRangeFilters)) {
+        const value = Number(project[column]);
+        if (!isNaN(value) && (value < range.min || value > range.max)) {
+          return false;
+        }
+      }
+
+      // Apply date filters
+      for (const [column, filter] of Object.entries(dateFilters)) {
+        if (!compareDates(
+          project[column], 
+          filter.value || null, 
+          filter.operator, 
+          filter.endValue || null
         )) {
           return false;
         }
-      } else {
-        // For non-array columns, check if the value matches any of the selected filters
-        if (!filterValues.includes(String(project[column]))) {
-          return false;
-        }
       }
-    }
+      
+      return true;
+    });
+  },
+  // Custom resolver to create cache key
+  (projects, searchTerm, selectedFilters, numberRangeFilters, dateFilters) => {
+    return `${searchTerm}|${JSON.stringify(selectedFilters)}|${JSON.stringify(numberRangeFilters)}|${JSON.stringify(dateFilters)}`;
+  }
+);
 
-    // Apply number range filters
-    for (const [column, range] of Object.entries(numberRangeFilters)) {
-      const value = Number(project[column]);
-      if (!isNaN(value) && (value < range.min || value > range.max)) {
-        return false;
-      }
-    }
-
-    // Apply date filters
-    for (const [column, filter] of Object.entries(dateFilters)) {
-      if (!compareDates(
-        project[column], 
-        filter.value || null, 
-        filter.operator, 
-        filter.endValue || null
-      )) {
-        return false;
-      }
-    }
-    
-    return true;
-  });
-};
+// Replace the original filterProjects with the memoized version
+export const filterProjects = memoizedFilterProjects;
 
 // Sort projects based on sort column and direction
-export const sortProjects = (
-  projects: ProjectData[],
-  sortColumn: string | null,
-  sortDirection: "asc" | "desc"
-): ProjectData[] => {
-  if (!sortColumn) return projects;
-  
-  return [...projects].sort((a, b) => {
-    const aValue = a[sortColumn];
-    const bValue = b[sortColumn];
+export const memoizedSortProjects = memoize(
+  (
+    projects: ProjectData[],
+    sortColumn: string | null,
+    sortDirection: "asc" | "desc"
+  ): ProjectData[] => {
+    if (!sortColumn) return projects;
     
-    if (aValue === bValue) return 0;
-    if (aValue === null) return 1;
-    if (bValue === null) return -1;
-    
-    const comparison = aValue < bValue ? -1 : 1;
-    return sortDirection === "asc" ? comparison : -comparison;
-  });
-};
+    return [...projects].sort((a, b) => {
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
+      
+      if (aValue === bValue) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+      
+      const comparison = aValue < bValue ? -1 : 1;
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  },
+  (projects, sortColumn, sortDirection) => {
+    // Use stable stringify for array values as cache key
+    return `${sortColumn || 'none'}|${sortDirection}`;
+  }
+);
+
+// Replace the original sortProjects with the memoized version
+export const sortProjects = memoizedSortProjects;
 
 // Get unique values for a column to use in filter dropdowns
 export const getUniqueColumnValues = (projects: ProjectData[], column: string): string[] => {

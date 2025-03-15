@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from "react";
+
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, CheckCircle, Layers } from "lucide-react";
@@ -19,8 +20,22 @@ import {
 import { useDataFetching } from "@/hooks/useDataFetching";
 import { toast } from "sonner";
 
+// Debounce function to limit how often a function can be called
+const debounce = <T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): ((...args: Parameters<T>) => void) => {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  
+  return (...args: Parameters<T>) => {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
@@ -40,6 +55,17 @@ const DataPage = () => {
     widths: Record<string, number>;
     order: string[];
   }>({ widths: {}, order: [] });
+
+  // Debounced search handler
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
   const {
     data: activeProjects = [],
@@ -72,7 +98,7 @@ const DataPage = () => {
       !isArrayColumn(currentProjects, column) && 
       column !== 'account'
     ), 
-    [columns, currentProjects.length]
+    [columns, currentProjects]
   );
 
   const dateColumns = useMemo(() => 
@@ -80,7 +106,7 @@ const DataPage = () => {
       currentProjects.length > 0 && 
       isDateColumn(column)
     ), 
-    [columns, currentProjects.length]
+    [columns]
   );
 
   const arrayColumns = useMemo(() => 
@@ -88,23 +114,32 @@ const DataPage = () => {
       currentProjects.length > 0 && 
       isArrayColumn(currentProjects, column)
     ), 
-    [columns, currentProjects.length]
+    [columns, currentProjects]
   );
 
-  React.useEffect(() => {
-    if (currentProjects.length > 0) {
+  // Initialize number range filters
+  useEffect(() => {
+    if (currentProjects.length > 0 && numberColumns.length > 0) {
       const initialRanges: Record<string, { min: number; max: number }> = {};
       numberColumns.forEach(column => {
-        const range = getColumnRange(currentProjects, column);
-        initialRanges[column] = range;
+        if (!numberRangeFilters[column]) {
+          const range = getColumnRange(currentProjects, column);
+          initialRanges[column] = range;
+        }
       });
-      setNumberRangeFilters(initialRanges);
+      
+      if (Object.keys(initialRanges).length > 0) {
+        setNumberRangeFilters(prev => ({
+          ...prev,
+          ...initialRanges
+        }));
+      }
     }
-  }, [currentProjects.length > 0, numberColumns.join(',')]);
+  }, [currentProjects.length, numberColumns, numberRangeFilters]);
 
   const filteredProjects = useMemo(() => 
-    filterProjects(currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters),
-    [currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters]
+    filterProjects(currentProjects, debouncedSearchTerm, selectedFilters, numberRangeFilters, dateFilters),
+    [currentProjects, debouncedSearchTerm, selectedFilters, numberRangeFilters, dateFilters]
   );
 
   const sortedProjects = useMemo(() => 
@@ -112,16 +147,19 @@ const DataPage = () => {
     [filteredProjects, sortColumn, sortDirection]
   );
 
-  const handleSort = (column: string) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortColumn(column);
-      setSortDirection("asc");
-    }
-  };
+  const handleSort = useCallback((column: string) => {
+    setSortColumn(prevColumn => {
+      if (prevColumn === column) {
+        setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+        return column;
+      } else {
+        setSortDirection("asc");
+        return column;
+      }
+    });
+  }, []);
 
-  const handleFilterSelectionChange = (column: string, value: string, checked: boolean) => {
+  const handleFilterSelectionChange = useCallback((column: string, value: string, checked: boolean) => {
     setSelectedFilters(prev => {
       const current = prev[column] || [];
       if (checked) {
@@ -136,21 +174,21 @@ const DataPage = () => {
         };
       }
     });
-  };
+  }, []);
 
-  const clearColumnFilters = (column: string) => {
+  const clearColumnFilters = useCallback((column: string) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
       delete newFilters[column];
       return newFilters;
     });
-  };
+  }, []);
 
-  const getUniqueValues = (column: string): string[] => {
+  const getUniqueValues = useCallback((column: string): string[] => {
     return getUniqueColumnValues(currentProjects, column);
-  };
+  }, [currentProjects]);
 
-  const handleRangeChange = (column: string, values: number[]) => {
+  const handleRangeChange = useCallback((column: string, values: number[]) => {
     setNumberRangeFilters(prev => ({
       ...prev,
       [column]: {
@@ -158,34 +196,30 @@ const DataPage = () => {
         max: values[1]
       }
     }));
-  };
+  }, []);
 
-  const applyDateFilter = (column: string, filter: DateFilter) => {
+  const applyDateFilter = useCallback((column: string, filter: DateFilter) => {
     setDateFilters(prev => ({
       ...prev,
       [column]: filter
     }));
-  };
+  }, []);
 
-  const clearDateFilter = (column: string) => {
+  const clearDateFilter = useCallback((column: string) => {
     setDateFilters(prev => {
       const newFilters = { ...prev };
       delete newFilters[column];
       return newFilters;
     });
-  };
+  }, []);
 
-  const handleTabChange = (value: string) => {
+  const handleTabChange = useCallback((value: string) => {
+    // Save current column configuration before switching tabs
     if (activeTab === "active") {
-      const activeTableElement = document.querySelector('[data-tab-content="active"] table');
-      if (activeTableElement) {
-        // Logic to extract column configuration from DOM if needed
-      }
+      // Logic to save active tab configuration if needed
+      // Implementation depends on how you capture table state
     } else if (activeTab === "master") {
-      const masterTableElement = document.querySelector('[data-tab-content="master"] table');
-      if (masterTableElement) {
-        // Logic to extract column configuration from DOM if needed
-      }
+      // Logic to save master tab configuration if needed
     }
     
     setActiveTab(value);
@@ -195,7 +229,7 @@ const DataPage = () => {
     setDateFilters({});
     setFilterPopoverOpen({});
     setDateFilterPopoverOpen({});
-  };
+  }, [activeTab]);
 
   return (
     <div className="h-full w-full flex flex-col">
