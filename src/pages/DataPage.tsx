@@ -2,9 +2,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, CheckCircle, Layers } from "lucide-react";
+import { Search, Filter, CheckCircle, Layers, RefreshCw } from "lucide-react";
 import DataTable from "@/components/data/DataTable";
-import { DateFilter } from "@/components/data/DateFilterPopover";
+import { Button } from "@/components/ui/button";
 import {
   ProjectData,
   HIDDEN_COLUMNS,
@@ -47,15 +47,8 @@ const DataPage = () => {
   const [filterPopoverOpen, setFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [dateFilterPopoverOpen, setDateFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<string>("active");
-  const [activeColumnConfig, setActiveColumnConfig] = useState<{
-    widths: Record<string, number>;
-    order: string[];
-  }>({ widths: {}, order: [] });
-  const [masterColumnConfig, setMasterColumnConfig] = useState<{
-    widths: Record<string, number>;
-    order: string[];
-  }>({ widths: {}, order: [] });
-
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
+  
   // Debounced search handler
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -72,27 +65,35 @@ const DataPage = () => {
     isLoading: isActiveLoading,
     error: activeError,
     refetch: refetchActive
-  } = useDataFetching(["activeProjects"], "active_projects_mv");
+  } = useDataFetching(["activeProjects", lastRefreshTime], "active_projects_mv");
 
   const {
     data: masterProjects = [],
     isLoading: isMasterLoading,
     error: masterError,
     refetch: refetchMaster
-  } = useDataFetching(["masterProjects"], "master_project_view_mv");
+  } = useDataFetching(["masterProjects", lastRefreshTime], "master_project_view_mv");
 
   // Debug logs to check data fetching
   useEffect(() => {
-    console.log("Active projects data:", activeProjects.length, "items");
+    console.log("Active projects data:", activeProjects);
+    console.log("Active projects length:", activeProjects.length);
     if (activeProjects.length > 0) {
       console.log("Active projects sample:", activeProjects[0]);
     }
 
-    console.log("Master projects data:", masterProjects.length, "items");
+    console.log("Master projects data:", masterProjects);
+    console.log("Master projects length:", masterProjects.length);
     if (masterProjects.length > 0) {
       console.log("Master projects sample:", masterProjects[0]);
     }
   }, [activeProjects, masterProjects]);
+
+  // If there's an error, log it
+  useEffect(() => {
+    if (activeError) console.error("Active projects error:", activeError);
+    if (masterError) console.error("Master projects error:", masterError);
+  }, [activeError, masterError]);
 
   const currentProjects = useMemo(() => {
     return activeTab === "active" ? activeProjects : masterProjects;
@@ -102,8 +103,10 @@ const DataPage = () => {
   const error = activeTab === "active" ? activeError : masterError;
 
   const columns = useMemo(() => {
-    if (currentProjects.length === 0) return [];
-    return Object.keys(currentProjects[0]).filter(column => !HIDDEN_COLUMNS.includes(column));
+    if (!currentProjects || currentProjects.length === 0) return [];
+    const firstProject = currentProjects[0];
+    if (!firstProject) return [];
+    return Object.keys(firstProject).filter(column => !HIDDEN_COLUMNS.includes(column));
   }, [currentProjects]);
 
   const numberColumns = useMemo(() => 
@@ -153,25 +156,22 @@ const DataPage = () => {
   }, [currentProjects.length, numberColumns, numberRangeFilters]);
 
   const filteredProjects = useMemo(() => {
+    if (!currentProjects || currentProjects.length === 0) return [];
     console.log("Filtering projects:", currentProjects.length);
     return filterProjects(currentProjects, debouncedSearchTerm, selectedFilters, numberRangeFilters, dateFilters);
   }, [currentProjects, debouncedSearchTerm, selectedFilters, numberRangeFilters, dateFilters]);
 
   const sortedProjects = useMemo(() => {
+    if (!filteredProjects || filteredProjects.length === 0) return [];
     console.log("Sorting filtered projects:", filteredProjects.length);
     return sortProjects(filteredProjects, sortColumn, sortDirection);
   }, [filteredProjects, sortColumn, sortDirection]);
 
   // Manual refresh handler
   const handleRefresh = useCallback(() => {
-    if (activeTab === "active") {
-      refetchActive();
-      toast.success("Refreshing active projects data");
-    } else {
-      refetchMaster();
-      toast.success("Refreshing master projects data");
-    }
-  }, [activeTab, refetchActive, refetchMaster]);
+    setLastRefreshTime(new Date());
+    toast.success(`Refreshing ${activeTab} projects data`);
+  }, [activeTab]);
 
   const handleSort = useCallback((column: string) => {
     setSortColumn(prevColumn => {
@@ -240,14 +240,6 @@ const DataPage = () => {
   }, []);
 
   const handleTabChange = useCallback((value: string) => {
-    // Save current column configuration before switching tabs
-    if (activeTab === "active") {
-      // Logic to save active tab configuration if needed
-      // Implementation depends on how you capture table state
-    } else if (activeTab === "master") {
-      // Logic to save master tab configuration if needed
-    }
-    
     setActiveTab(value);
     setSortColumn(null);
     setSortDirection("asc");
@@ -255,7 +247,7 @@ const DataPage = () => {
     setDateFilters({});
     setFilterPopoverOpen({});
     setDateFilterPopoverOpen({});
-  }, [activeTab]);
+  }, []);
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -286,23 +278,25 @@ const DataPage = () => {
                 />
               </div>
               <div className="flex items-center gap-4">
-                <button 
+                <Button 
                   onClick={handleRefresh} 
-                  className="text-sm font-medium text-primary hover:underline"
+                  variant="outline"
+                  className="flex items-center gap-2"
                 >
+                  <RefreshCw size={16} />
                   Refresh Data
-                </button>
+                </Button>
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">
-                    Showing {sortedProjects.length} of {activeProjects.length} projects
+                    Showing {sortedProjects?.length || 0} of {activeProjects?.length || 0} projects
                   </span>
                 </div>
               </div>
             </div>
             
             <DataTable 
-              data={sortedProjects}
+              data={sortedProjects || []}
               columns={columns}
               dateColumns={dateColumns}
               arrayColumns={arrayColumns}
@@ -339,23 +333,25 @@ const DataPage = () => {
                 />
               </div>
               <div className="flex items-center gap-4">
-                <button 
+                <Button 
                   onClick={handleRefresh} 
-                  className="text-sm font-medium text-primary hover:underline"
+                  variant="outline"
+                  className="flex items-center gap-2"
                 >
+                  <RefreshCw size={16} />
                   Refresh Data
-                </button>
+                </Button>
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">
-                    Showing {sortedProjects.length} of {masterProjects.length} projects
+                    Showing {sortedProjects?.length || 0} of {masterProjects?.length || 0} projects
                   </span>
                 </div>
               </div>
             </div>
             
             <DataTable 
-              data={sortedProjects}
+              data={sortedProjects || []}
               columns={columns}
               dateColumns={dateColumns}
               arrayColumns={arrayColumns}

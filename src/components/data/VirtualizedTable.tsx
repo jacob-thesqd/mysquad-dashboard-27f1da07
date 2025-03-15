@@ -1,5 +1,5 @@
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
@@ -82,8 +82,21 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
   const tableRef = useRef<HTMLTableElement>(null);
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // Get ordered columns
-  const orderedColumns = columnOrder.length > 0 ? columnOrder : columns;
+  // Debug data on mount and changes
+  useEffect(() => {
+    console.log("VirtualizedTable data:", data?.length || 0, "items");
+    console.log("VirtualizedTable columns:", columns?.length || 0, "columns");
+    console.log("VirtualizedTable isLoading:", isLoading);
+    console.log("VirtualizedTable error:", error);
+    if (data && data.length > 0) {
+      console.log("First row:", data[0]);
+    }
+  }, [data, columns, isLoading, error]);
+
+  // Get ordered columns - make sure we have a valid array
+  const orderedColumns = Array.isArray(columnOrder) && columnOrder.length > 0 
+    ? columnOrder 
+    : Array.isArray(columns) ? columns : [];
 
   // Handle column resize start
   const handleResizeStart = (e: React.MouseEvent, column: string) => {
@@ -138,16 +151,18 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
   const handleDrop = (e: React.DragEvent, targetColumn: string) => {
     e.preventDefault();
     if (draggedColumn && draggedColumn !== targetColumn) {
-      const newOrder = [...columnOrder];
+      const newOrder = [...(Array.isArray(columnOrder) ? columnOrder : columns)];
       const draggedIdx = newOrder.indexOf(draggedColumn);
       const targetIdx = newOrder.indexOf(targetColumn);
       
-      // Remove the dragged column
-      newOrder.splice(draggedIdx, 1);
-      // Insert at the target position
-      newOrder.splice(targetIdx, 0, draggedColumn);
-      
-      onColumnReorder(newOrder);
+      if (draggedIdx !== -1 && targetIdx !== -1) {
+        // Remove the dragged column
+        newOrder.splice(draggedIdx, 1);
+        // Insert at the target position
+        newOrder.splice(targetIdx, 0, draggedColumn);
+        
+        onColumnReorder(newOrder);
+      }
     }
     setDraggedColumn(null);
     setDragOverColumn(null);
@@ -159,15 +174,15 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
     setDragOverColumn(null);
   };
 
-  // Table virtualization
+  // Table virtualization - only create virtualizer if we have data
   const rowVirtualizer = useVirtualizer({
-    count: isLoading || error ? 1 : (data.length || 1),
+    count: isLoading || error ? 1 : ((data && data.length) || 1),
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40, // row height estimate
     overscan: 5,
   });
 
-  // For empty loading or error states
+  // For loading state
   if (isLoading) {
     return (
       <div ref={parentRef} className="flex-1 border rounded-md overflow-hidden mb-2">
@@ -176,7 +191,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
             <Table ref={tableRef}>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  {orderedColumns.map(column => (
+                  {Array.isArray(orderedColumns) && orderedColumns.map(column => (
                     <TableHead 
                       key={column} 
                       className="relative select-none group"
@@ -195,8 +210,11 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="text-center py-8">
-                    Loading data...
+                  <TableCell colSpan={orderedColumns.length || 1} className="text-center py-8">
+                    <div className="flex flex-col items-center justify-center p-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                      <p>Loading data...</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -207,6 +225,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
     );
   }
 
+  // For error state
   if (error) {
     return (
       <div ref={parentRef} className="flex-1 border rounded-md overflow-hidden mb-2">
@@ -215,7 +234,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
             <Table ref={tableRef}>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  {orderedColumns.map(column => (
+                  {Array.isArray(orderedColumns) && orderedColumns.map(column => (
                     <TableHead 
                       key={column} 
                       className="relative select-none group"
@@ -234,8 +253,11 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="text-center py-8">
-                    Error loading data: {(error as Error).message}
+                  <TableCell colSpan={orderedColumns.length || 1} className="text-center py-8">
+                    <div className="flex flex-col items-center justify-center p-8 text-red-500">
+                      <p>Error loading data: {(error as Error).message || JSON.stringify(error)}</p>
+                      <p className="mt-2 text-sm text-muted-foreground">Please try refreshing the page.</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -246,7 +268,8 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
     );
   }
 
-  if (data.length === 0) {
+  // For empty data state (after loading is complete)
+  if (!data || data.length === 0) {
     return (
       <div ref={parentRef} className="flex-1 border rounded-md overflow-hidden mb-2">
         <ScrollArea className="h-full" orientation="both">
@@ -254,7 +277,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
             <Table ref={tableRef}>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  {orderedColumns.map(column => (
+                  {Array.isArray(orderedColumns) && orderedColumns.map(column => (
                     <TableHead 
                       key={column} 
                       className="relative select-none group"
@@ -273,8 +296,13 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="text-center py-8">
-                    No projects found
+                  <TableCell colSpan={orderedColumns.length || 1} className="text-center py-8">
+                    <div className="flex flex-col items-center justify-center p-8">
+                      <p>No projects found</p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Try changing your filters or refreshing the data.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -288,6 +316,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
   console.log("Data to render:", data.length, "items");
   console.log("First row sample:", data[0]);
 
+  // We have data to display
   return (
     <div ref={parentRef} className="flex-1 border rounded-md overflow-hidden mb-2 h-full">
       <ScrollArea className="h-full" orientation="both">
@@ -302,7 +331,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
           <Table ref={tableRef}>
             <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                {orderedColumns.map(column => (
+                {Array.isArray(orderedColumns) && orderedColumns.map(column => (
                   <TableHead 
                     key={column} 
                     className={cn(
@@ -394,7 +423,7 @@ const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
                   >
-                    {orderedColumns.map(column => (
+                    {Array.isArray(orderedColumns) && orderedColumns.map(column => (
                       <TableCell 
                         key={`${rowIndex}-${column}`} 
                         style={{ 

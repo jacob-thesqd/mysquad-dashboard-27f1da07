@@ -36,9 +36,13 @@ const DataTable: React.FC<DataTableProps> = (props) => {
   // State for column order
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
   
+  console.log("DataTable received data:", props.data?.length || 0, "items");
+  console.log("DataTable received columns:", props.columns?.length || 0, "columns");
+  
   // Initialize column order and widths when columns change
   useEffect(() => {
-    if (props.columns.length > 0 && columnOrder.length === 0) {
+    if (props.columns && props.columns.length > 0 && columnOrder.length === 0) {
+      console.log("Initializing column order with:", props.columns);
       setColumnOrder([...props.columns]);
       
       const initialWidths: Record<string, number> = {};
@@ -70,7 +74,7 @@ const DataTable: React.FC<DataTableProps> = (props) => {
     <VirtualizedTable
       {...props}
       columnWidths={columnWidths}
-      columnOrder={columnOrder}
+      columnOrder={columnOrder.length > 0 ? columnOrder : props.columns}
       onColumnResize={handleColumnResize}
       onColumnReorder={handleColumnReorder}
     />
