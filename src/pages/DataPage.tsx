@@ -32,6 +32,14 @@ const DataPage = () => {
   const [filterPopoverOpen, setFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [dateFilterPopoverOpen, setDateFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<string>("active");
+  const [activeColumnConfig, setActiveColumnConfig] = useState<{
+    widths: Record<string, number>;
+    order: string[];
+  }>({ widths: {}, order: [] });
+  const [masterColumnConfig, setMasterColumnConfig] = useState<{
+    widths: Record<string, number>;
+    order: string[];
+  }>({ widths: {}, order: [] });
 
   const {
     data: activeProjects = [],
@@ -168,6 +176,18 @@ const DataPage = () => {
   };
 
   const handleTabChange = (value: string) => {
+    if (activeTab === "active") {
+      const activeTableElement = document.querySelector('[data-tab-content="active"] table');
+      if (activeTableElement) {
+        // Logic to extract column configuration from DOM if needed
+      }
+    } else if (activeTab === "master") {
+      const masterTableElement = document.querySelector('[data-tab-content="master"] table');
+      if (masterTableElement) {
+        // Logic to extract column configuration from DOM if needed
+      }
+    }
+    
     setActiveTab(value);
     setSortColumn(null);
     setSortDirection("asc");
@@ -193,7 +213,7 @@ const DataPage = () => {
           </TabsList>
         </div>
         
-        <TabsContent value="active" className="flex-1 h-[calc(100%-3rem)]">
+        <TabsContent value="active" className="flex-1 h-[calc(100%-3rem)]" data-tab-content="active">
           <div className="p-4 h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="relative w-80">
@@ -238,7 +258,7 @@ const DataPage = () => {
           </div>
         </TabsContent>
         
-        <TabsContent value="master" className="flex-1 h-[calc(100%-3rem)]">
+        <TabsContent value="master" className="flex-1 h-[calc(100%-3rem)]" data-tab-content="master">
           <div className="p-4 h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="relative w-80">
