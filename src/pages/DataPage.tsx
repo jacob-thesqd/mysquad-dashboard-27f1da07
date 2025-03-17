@@ -280,7 +280,7 @@ const DataPage = () => {
           <TabsList className="mt-4 mb-0 my-0">
             <TabsTrigger value="active" className="flex items-center gap-2">
               <CheckCircle size={16} />
-              Account Active Projects View
+              Active Projects View
             </TabsTrigger>
             <TabsTrigger value="master" className="flex items-center gap-2">
               <Layers size={16} />
