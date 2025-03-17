@@ -21,7 +21,17 @@ export function useTaskAudits() {
         throw new Error(error.message);
       }
       
-      return data as TaskAudit[];
+      // Transform the data to match our TaskAudit type
+      const typedData = data.map(item => {
+        // Cast the generic JSON data to our specific type
+        return {
+          ...item,
+          data: item.data as unknown as TaskAudit['data'],
+          comment_sent: item.comment_sent === null ? null : Boolean(item.comment_sent)
+        } as TaskAudit;
+      });
+      
+      return typedData;
     },
   });
 
