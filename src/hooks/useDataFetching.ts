@@ -34,6 +34,7 @@ export function useDataFetching(
   const queryClient = useQueryClient();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Default pagination values if not provided
   const pageIndex = paginationOptions?.pageIndex ?? 0;
@@ -57,9 +58,37 @@ export function useDataFetching(
       try {
         console.log(`Fetching data from ${tableName} with range: ${start}-${end}`);
         
+        // If search term is provided and not empty, use the RPC search function
+        if (searchTerm && searchTerm.length > 2) {
+          setIsSearching(true);
+          const { data: searchData, error: searchError } = await supabase
+            .rpc('search_text_in_table', {
+              p_table_name: tableName,
+              p_search_text: searchTerm
+            });
+          
+          if (searchError) {
+            console.error(`Error searching in ${tableName}:`, searchError);
+            throw new Error(searchError.message);
+          }
+          
+          // The search results come back as an array of { result_row: {...} } objects
+          // Transform them to match our expected format
+          const transformedData = searchData.map((item: { result_row: any }) => item.result_row);
+          
+          // Set total count for pagination
+          setTotalCount(transformedData.length);
+          
+          console.log(`Found ${transformedData.length} search results in ${tableName}`);
+          
+          // Return a slice for the current page
+          return transformedData.slice(start, end + 1) as ProjectData[];
+        }
+        
+        setIsSearching(false);
         let query = supabase.from(tableName).select('*', { count: 'exact' });
         
-        // Add search filter if provided
+        // Add search filter if provided but not using RPC search
         if (searchTerm) {
           // This is a simple example - you might need to adjust based on your search fields
           query = query.or(`name.ilike.%${searchTerm}%,church.ilike.%${searchTerm}%`);
@@ -93,7 +122,7 @@ export function useDataFetching(
 
   // Prefetch next page
   useEffect(() => {
-    if (!isLoading && !isFetching && data.length > 0) {
+    if (!isLoading && !isFetching && data.length > 0 && !isSearching) {
       const nextPageIndex = pageIndex + 1;
       const nextPageStart = nextPageIndex * pageSize;
       const nextPageEnd = nextPageStart + pageSize - 1;
@@ -124,7 +153,7 @@ export function useDataFetching(
         });
       }
     }
-  }, [pageIndex, pageSize, data, isLoading, isFetching, queryClient, queryKey, tableName, searchTerm, totalCount]);
+  }, [pageIndex, pageSize, data, isLoading, isFetching, queryClient, queryKey, tableName, searchTerm, totalCount, isSearching]);
 
   // Calculate total page count
   const pageCount = Math.ceil(totalCount / pageSize);
@@ -135,6 +164,7 @@ export function useDataFetching(
     error, 
     refetch, 
     isFetching,
+    isSearching,
     pagination: {
       pageIndex,
       pageSize,
@@ -146,7 +176,7 @@ export function useDataFetching(
 
 // Helper function to fetch all pages of data (for legacy support)
 export async function fetchAllPages(tableName: AllowedTable): Promise<ProjectData[]> {
-  const pageSize = 1000; // Changed from 1000 to 1000 (already was 1000)
+  const pageSize = 1000;
   let page = 0;
   let hasMore = true;
   let allData: ProjectData[] = [];

@@ -6062,6 +6062,28 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      search_table: {
+        Args: {
+          search_text: string
+          table_to_search: string
+        }
+        Returns: {
+          column_name: string
+          row_id: string
+          match_type: string
+          similarity: number
+          matched_value: string
+        }[]
+      }
+      search_text_in_table: {
+        Args: {
+          p_table_name: string
+          p_search_text: string
+        }
+        Returns: {
+          result_row: Json
+        }[]
+      }
       set_accid: {
         Args: {
           accid: string

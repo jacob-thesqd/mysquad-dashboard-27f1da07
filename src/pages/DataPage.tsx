@@ -225,6 +225,60 @@ const DataPage = () => {
     toast.success("Data exported successfully!");
   };
 
+  const renderTableControls = (isActiveTab: boolean) => {
+    const currentPagination = isActiveTab ? activePagination : masterPagination;
+    const currentIsFetching = isActiveTab ? isActiveFetching : isMasterFetching;
+    const currentIsLoading = isActiveTab ? isActiveLoading : isMasterLoading;
+    const currentProjects = isActiveTab ? activeProjects : masterProjects;
+    
+    const startRow = pageIndex * pageSize + 1;
+    const endRow = Math.min((pageIndex + 1) * pageSize, currentPagination?.totalCount || 0);
+    const totalRows = currentPagination?.totalCount || 0;
+
+    return (
+      <div className="flex items-center justify-between mb-4">
+        <div className="relative w-80">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search projects..." 
+            className="pl-8" 
+            value={searchTerm} 
+            onChange={e => setSearchTerm(e.target.value)} 
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mr-4">
+            <span className="text-sm font-small text-muted-foreground">
+              {sortedProjects.length > 0 ? (
+                <>Showing rows {startRow} to {endRow} of {totalRows} projects</>
+              ) : (
+                <>No projects found</>
+              )}
+            </span>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleLoadAll} 
+            disabled={isLoadingAll} 
+            className="mr-2"
+          >
+            {isLoadingAll ? "Loading..." : "Load All"}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleExportCSV} 
+            disabled={currentIsLoading || currentProjects.length === 0}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   const renderPagination = () => {
     if (pagination?.pageCount <= 1 || sortedProjects.length === 0) {
       return null;
@@ -286,29 +340,30 @@ const DataPage = () => {
         
         <TabsContent value="active" className="flex-1 h-[calc(100%-3rem)]">
           <div className="p-4 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <div className="relative w-80">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search projects..." className="pl-8" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 mr-4">
-                  
-                  <span className="text-xs font-small">
-                    Showing rows {pageIndex * pageSize + 1} to {Math.min((pageIndex + 1) * pageSize, pagination?.totalCount || 0)} of {pagination?.totalCount || 0} projects
-                  </span>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleLoadAll} disabled={isLoadingAll} className="mr-2">
-                  {isLoadingAll ? "Loading..." : "Load All"}
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isLoading || currentProjects.length === 0}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-              </div>
-            </div>
+            {renderTableControls(true)}
             
-            <DataTable data={sortedProjects} columns={columns} dateColumns={dateColumns} arrayColumns={arrayColumns} isLoading={isLoading || isFetching} error={error} sortColumn={sortColumn} sortDirection={sortDirection} selectedFilters={selectedFilters} dateFilters={dateFilters} filterPopoverOpen={filterPopoverOpen} dateFilterPopoverOpen={dateFilterPopoverOpen} handleSort={handleSort} getUniqueColumnValues={getUniqueValues} handleFilterSelectionChange={handleFilterSelectionChange} clearColumnFilters={clearColumnFilters} setFilterPopoverOpen={setFilterPopoverOpen} setDateFilterPopoverOpen={setDateFilterPopoverOpen} applyDateFilter={applyDateFilter} clearDateFilter={clearDateFilter} />
+            <DataTable 
+              data={sortedProjects} 
+              columns={columns} 
+              dateColumns={dateColumns} 
+              arrayColumns={arrayColumns} 
+              isLoading={isLoading || isFetching} 
+              error={error} 
+              sortColumn={sortColumn} 
+              sortDirection={sortDirection} 
+              selectedFilters={selectedFilters} 
+              dateFilters={dateFilters} 
+              filterPopoverOpen={filterPopoverOpen} 
+              dateFilterPopoverOpen={dateFilterPopoverOpen} 
+              handleSort={handleSort} 
+              getUniqueColumnValues={getUniqueValues} 
+              handleFilterSelectionChange={handleFilterSelectionChange} 
+              clearColumnFilters={clearColumnFilters} 
+              setFilterPopoverOpen={setFilterPopoverOpen} 
+              setDateFilterPopoverOpen={setDateFilterPopoverOpen} 
+              applyDateFilter={applyDateFilter} 
+              clearDateFilter={clearDateFilter} 
+            />
 
             {renderPagination()}
           </div>
@@ -316,29 +371,30 @@ const DataPage = () => {
         
         <TabsContent value="master" className="flex-1 h-[calc(100%-3rem)]">
           <div className="p-4 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <div className="relative w-80">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search projects..." className="pl-8" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 mr-4">
-                  
-                  <span className="text-xs font-small">
-                    Showing rows {pageIndex * pageSize + 1} to {Math.min((pageIndex + 1) * pageSize, pagination?.totalCount || 0)} of {pagination?.totalCount || 0} projects
-                  </span>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleLoadAll} disabled={isLoadingAll} className="mr-2">
-                  {isLoadingAll ? "Loading..." : "Load All"}
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isLoading || currentProjects.length === 0}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-              </div>
-            </div>
+            {renderTableControls(false)}
             
-            <DataTable data={sortedProjects} columns={columns} dateColumns={dateColumns} arrayColumns={arrayColumns} isLoading={isLoading || isFetching} error={error} sortColumn={sortColumn} sortDirection={sortDirection} selectedFilters={selectedFilters} dateFilters={dateFilters} filterPopoverOpen={filterPopoverOpen} dateFilterPopoverOpen={dateFilterPopoverOpen} handleSort={handleSort} getUniqueColumnValues={getUniqueValues} handleFilterSelectionChange={handleFilterSelectionChange} clearColumnFilters={clearColumnFilters} setFilterPopoverOpen={setFilterPopoverOpen} setDateFilterPopoverOpen={setDateFilterPopoverOpen} applyDateFilter={applyDateFilter} clearDateFilter={clearDateFilter} />
+            <DataTable 
+              data={sortedProjects} 
+              columns={columns} 
+              dateColumns={dateColumns} 
+              arrayColumns={arrayColumns} 
+              isLoading={isLoading || isFetching} 
+              error={error} 
+              sortColumn={sortColumn} 
+              sortDirection={sortDirection} 
+              selectedFilters={selectedFilters} 
+              dateFilters={dateFilters} 
+              filterPopoverOpen={filterPopoverOpen} 
+              dateFilterPopoverOpen={dateFilterPopoverOpen} 
+              handleSort={handleSort} 
+              getUniqueColumnValues={getUniqueValues} 
+              handleFilterSelectionChange={handleFilterSelectionChange} 
+              clearColumnFilters={clearColumnFilters} 
+              setFilterPopoverOpen={setFilterPopoverOpen} 
+              setDateFilterPopoverOpen={setDateFilterPopoverOpen} 
+              applyDateFilter={applyDateFilter} 
+              clearDateFilter={clearDateFilter} 
+            />
 
             {renderPagination()}
           </div>

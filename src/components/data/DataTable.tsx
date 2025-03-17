@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
@@ -80,7 +81,7 @@ const DataTable: React.FC<DataTableProps> = ({
     count: data.length,
     getScrollElement: () => scrollContainerRef.current,
     estimateSize: () => estimatedRowHeight,
-    overscan: 50 // Increased from 20 to 50 for better pre-loading
+    overscan: 100 // Increased from 50 to 100 for better pre-loading
   });
 
   // Get virtualized rows
