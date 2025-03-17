@@ -46,9 +46,9 @@ export function AuditDetail({
   }
   if (!audit) {
     return <div className="flex flex-col items-center justify-center h-full">
-        <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
-        <h3 className="text-xl font-medium">No audit selected</h3>
-        <p className="text-muted-foreground">Select an audit from the sidebar to view details</p>
+        <AlertCircle className="w-8 h-8 text-muted-foreground mb-2" />
+        <h3 className="text-l font-medium text-base">No audit selected</h3>
+        <p className="text-xs text-muted-foreground">Select an audit from the sidebar to view details</p>
       </div>;
   }
   return <ScrollArea className="h-[calc(100vh-12rem)]">
