@@ -172,7 +172,7 @@ export function AuditDetail({
                   </div>
                 </div>}
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-3 gap-4 text-sm">
                 {taskDetails.time_estimate > 0 && <div>
                     <h4 className="font-semibold mb-1">Estimated Time</h4>
                     <p>{Math.round(taskDetails.time_estimate / 60000)} minutes</p>
