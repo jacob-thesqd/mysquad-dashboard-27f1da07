@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
@@ -23,6 +24,7 @@ const getColumnWidthClass = (column: string): string => {
   }
   return 'min-w-[180px]';
 };
+
 interface DataTableProps {
   data: any[];
   columns: string[];
@@ -45,6 +47,7 @@ interface DataTableProps {
   applyDateFilter: (column: string, filter: DateFilter) => void;
   clearDateFilter: (column: string) => void;
 }
+
 const DataTable: React.FC<DataTableProps> = ({
   data,
   columns,
@@ -77,7 +80,7 @@ const DataTable: React.FC<DataTableProps> = ({
     count: data.length,
     getScrollElement: () => tableContainerRef.current,
     estimateSize: () => estimatedRowHeight,
-    overscan: 10 // Show extra rows beyond the visible area for smoother scrolling
+    overscan: 20 // Increased from 10 to 20 to show more rows
   });
 
   // Get virtualized rows
@@ -97,6 +100,7 @@ const DataTable: React.FC<DataTableProps> = ({
       tableContainerRef.current.scrollTop = 0;
     }
   }, [data, columns]);
+
   return <div ref={tableContainerRef} className="flex-1 border rounded-md overflow-hidden my-0">
       <ScrollArea className="h-full">
         <div className="min-w-full">
@@ -168,4 +172,5 @@ const DataTable: React.FC<DataTableProps> = ({
       </ScrollArea>
     </div>;
 };
+
 export default DataTable;
