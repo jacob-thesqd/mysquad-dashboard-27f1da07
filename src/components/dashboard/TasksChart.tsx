@@ -1,12 +1,15 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toggle } from "@/components/ui/toggle";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { TaskTrendData } from "@/hooks/useProjectStats";
+import { TimeSeriesData } from "@/hooks/useProjectStats";
+
 interface TasksChartProps {
-  data: TaskTrendData[];
+  data: TimeSeriesData[];
   isLoading?: boolean;
 }
+
 const TasksChart: React.FC<TasksChartProps> = ({
   data,
   isLoading = false
@@ -40,7 +43,9 @@ const TasksChart: React.FC<TasksChartProps> = ({
     // Convert to array and sort by date
     return Object.values(dateGroups).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   };
+  
   const chartData = prepareChartData();
+  
   if (isLoading) {
     return <Card className="col-span-4">
         <CardHeader className="pb-2">
@@ -51,6 +56,7 @@ const TasksChart: React.FC<TasksChartProps> = ({
         </CardContent>
       </Card>;
   }
+  
   return <Card className="col-span-4">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
@@ -89,4 +95,5 @@ const TasksChart: React.FC<TasksChartProps> = ({
       </CardContent>
     </Card>;
 };
+
 export default TasksChart;

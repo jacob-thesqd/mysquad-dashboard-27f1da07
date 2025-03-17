@@ -2,12 +2,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface DailyMetric {
+// Define interfaces for the API responses
+export interface DailyMetric {
   count: string;
   type: string;
 }
 
-interface TimeSeriesData {
+export interface TimeSeriesData {
   date: string;
   task_count: number;
   type: string;
@@ -24,7 +25,7 @@ export interface ProjectStats {
 }
 
 export const useProjectStats = () => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['projectStats'],
     queryFn: async (): Promise<ProjectStats> => {
       // Fetch the daily metrics
@@ -44,7 +45,7 @@ export const useProjectStats = () => {
       }
       
       // Cast the metrics data to the correct type
-      const typedMetricsData = metricsData as DailyMetric[];
+      const typedMetricsData = metricsData as unknown as DailyMetric[];
       
       // Parse the metrics data into the ProjectStats format
       const stats: ProjectStats = {
@@ -61,4 +62,10 @@ export const useProjectStats = () => {
     },
     refetchInterval: 60000, // Refetch every minute
   });
+
+  return {
+    stats: query.data,
+    isLoading: query.isLoading || !query.data,
+    error: query.error
+  };
 };

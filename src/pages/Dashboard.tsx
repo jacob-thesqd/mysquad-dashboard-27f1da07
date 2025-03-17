@@ -24,6 +24,17 @@ const Dashboard = () => {
     return `${minutes}m ${remainingSeconds.toFixed(0)}s`;
   };
 
+  // Handle the case when stats is undefined during initial load
+  const safeStats = stats || {
+    tasksCreatedToday: 0,
+    designTasksCreatedToday: 0,
+    tasksAutoAssignedToday: 0,
+    tasksInQueue: 0,
+    queuedToday: 0,
+    medianAASeconds: 0,
+    timeSeriesData: []
+  };
+
   return (
     <div className="p-8 h-full overflow-auto">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
@@ -31,7 +42,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
         <StatsCard 
           title="Tasks Created Today" 
-          value={stats.tasksCreatedToday} 
+          value={safeStats.tasksCreatedToday} 
           icon={<CalendarPlus size={24} />}
           filterParam={`date_created:${new Date().toISOString().split('T')[0]}`}
           isLoading={isLoading}
@@ -39,7 +50,7 @@ const Dashboard = () => {
         
         <StatsCard 
           title="Design/Video Tasks Today" 
-          value={stats.designTasksCreatedToday} 
+          value={safeStats.designTasksCreatedToday} 
           icon={<Layers size={24} />}
           filterParam={`date_created:${new Date().toISOString().split('T')[0]} space_name:Blue,Red`}
           isLoading={isLoading}
@@ -47,7 +58,7 @@ const Dashboard = () => {
         
         <StatsCard 
           title="Auto-Assigned Today" 
-          value={stats.tasksAutoAssignedToday} 
+          value={safeStats.tasksAutoAssignedToday} 
           icon={<CheckSquare size={24} />}
           filterParam={`date_auto_assigned:${new Date().toISOString().split('T')[0]}`}
           isLoading={isLoading}
@@ -55,7 +66,7 @@ const Dashboard = () => {
         
         <StatsCard 
           title="Tasks In Queue" 
-          value={stats.tasksInQueue} 
+          value={safeStats.tasksInQueue} 
           icon={<Clock size={24} />}
           filterParam="auto_assign_status:queued"
           isLoading={isLoading}
@@ -63,7 +74,7 @@ const Dashboard = () => {
 
         <StatsCard 
           title="Added to Queue Today" 
-          value={stats.queuedToday} 
+          value={safeStats.queuedToday} 
           icon={<AlarmClock size={24} />}
           filterParam={`date_queued:${new Date().toISOString().split('T')[0]}`}
           isLoading={isLoading}
@@ -71,7 +82,7 @@ const Dashboard = () => {
 
         <StatsCard 
           title="Median Auto-Assign Time" 
-          value={stats.medianAASeconds} 
+          value={safeStats.medianAASeconds} 
           icon={<Timer size={24} />}
           valueFormatter={formatSeconds}
           isLoading={isLoading}
@@ -79,7 +90,7 @@ const Dashboard = () => {
       </div>
       
       <div className="grid grid-cols-1 gap-6">
-        <TasksChart data={stats.timeSeriesData} isLoading={isLoading} />
+        <TasksChart data={safeStats.timeSeriesData} isLoading={isLoading} />
       </div>
     </div>
   );
