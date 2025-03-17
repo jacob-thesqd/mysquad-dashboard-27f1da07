@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
-import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, Waves, Hourglass } from "lucide-react";
+import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, Waves, CalendarDays } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -104,11 +104,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 Task Deep Dive
               </SidebarItem>
               <SidebarItem 
-                icon={Hourglass} 
-                active={location.pathname === "/turnaround"} 
-                onClick={() => handleNavigation("/turnaround")}
+                icon={CalendarDays} 
+                active={location.pathname === "/scheduling"} 
+                onClick={() => handleNavigation("/scheduling")}
               >
-                Turnaround Time Calculator
+                Scheduling
               </SidebarItem>
             </SidebarSection>
           </div>
