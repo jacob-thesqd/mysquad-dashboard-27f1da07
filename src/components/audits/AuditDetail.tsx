@@ -46,7 +46,7 @@ export function AuditDetail({
   }
   if (!audit) {
     return <div className="flex flex-col items-center justify-center h-full">
-        <AlertCircle className="w-8 h-8 text-muted-foreground mb-2" />
+        <AlertCircle className="w-8 h-8 text-muted-foreground" />
         <h3 className="text-l font-medium text-base">No audit selected</h3>
         <p className="text-xs text-muted-foreground">Select an audit from the sidebar to view details</p>
       </div>;
