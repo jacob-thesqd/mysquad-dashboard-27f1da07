@@ -76,7 +76,7 @@ export function AuditDetail({
 
             {audit.data.keywordsFoundDesc && <div>
                 <h4 className="text-sm font-semibold mb-1">Keywords Found</h4>
-                <p className="text-sm bg-muted p-2 rounded">{audit.data.keywordsFoundDesc}</p>
+                <p className="text-sm bg-muted py-2 px-4 rounded font-normal rounded-full">{audit.data.keywordsFoundDesc}</p>
               </div>}
 
             {audit.data.googleLinks && audit.data.googleLinks.length > 0 && <div>
@@ -94,7 +94,7 @@ export function AuditDetail({
             {audit.data.taskData.assignees && audit.data.taskData.assignees.length > 0 && <div>
                 <h4 className="text-sm font-semibold mb-1">Assignees</h4>
                 <div className="flex flex-wrap gap-2">
-                  {audit.data.taskData.assignees.map(assignee => <div key={assignee.id} className="flex items-center space-x-2 bg-muted p-2 rounded">
+                  {audit.data.taskData.assignees.map(assignee => <div key={assignee.id} className="flex items-center space-x-2 bg-muted p-2 rounded-full">
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={assignee.profilePicture} alt={assignee.username} />
                         <AvatarFallback>{assignee.initials}</AvatarFallback>
