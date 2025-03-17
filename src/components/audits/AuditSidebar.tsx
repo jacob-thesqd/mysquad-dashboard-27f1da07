@@ -27,7 +27,7 @@ export function AuditSidebar({
         <p className="text-muted-foreground">No audits found</p>
       </div>;
   }
-  return <ScrollArea className="h-[calc(100vh-9rem)] pr-4">
+  return <ScrollArea className="h-[calc(100vh-13rem)] pr-4">
       <div className="space-y-4 pb-4 p-2">
         {audits.map(audit => <Card key={audit.row_id} className={`cursor-pointer transition-all hover:shadow-md ${selectedAuditId === audit.row_id ? 'border-primary ring-1 ring-primary' : ''}`} onClick={() => onSelectAudit(audit)}>
             <CardContent className="pl-3 py-3">
