@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient, QueryKey } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -99,7 +98,11 @@ export function useDataFetching(
           
           // The search results come back as an array of { result_row: {...} } objects
           // Transform them to match our expected format
-          const transformedData = searchData.map((item: { result_row: any }) => item.result_row);
+          const transformedData = searchData.map((item: { result_row: any }) => 
+            typeof item.result_row === 'string' 
+              ? JSON.parse(item.result_row) 
+              : item.result_row
+          );
           
           // Set total count for pagination
           setTotalCount(transformedData.length);

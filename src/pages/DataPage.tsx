@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useSearchParams } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,15 @@ import { ProjectData, HIDDEN_COLUMNS, DATE_COLUMNS, isArrayColumn, isDateColumn,
 import { useDataFetching, PaginationOptions } from "@/hooks/useDataFetching";
 import { toast } from "sonner";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+
 const DEFAULT_PAGE_SIZE = 1000;
+
 const DataPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || "active";
+  const initialFilter = searchParams.get('filter') || "";
+  
+  const [searchTerm, setSearchTerm] = useState(initialFilter);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
@@ -22,15 +28,23 @@ const DataPage = () => {
   const [dateFilters, setDateFilters] = useState<Record<string, DateFilter>>({});
   const [filterPopoverOpen, setFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [dateFilterPopoverOpen, setDateFilterPopoverOpen] = useState<Record<string, boolean>>({});
-  const [activeTab, setActiveTab] = useState<string>("active");
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [isLoadingAll, setIsLoadingAll] = useState(false);
+
+  useEffect(() => {
+    if (initialFilter) {
+      setSearchTerm(initialFilter);
+    }
+  }, [initialFilter]);
+
   const paginationOptions: PaginationOptions = {
     pageIndex,
     pageSize,
     searchTerm
   };
+
   const {
     data: activeProjects = [],
     isLoading: isActiveLoading,
@@ -41,6 +55,7 @@ const DataPage = () => {
   } = useDataFetching(["activeProjects"], "active_projects_mv", {
     enabled: activeTab === "active"
   }, activeTab === "active" ? paginationOptions : undefined);
+
   const {
     data: masterProjects = [],
     isLoading: isMasterLoading,
@@ -51,20 +66,25 @@ const DataPage = () => {
   } = useDataFetching(["masterProjects"], "master_project_view_mv", {
     enabled: activeTab === "master"
   }, activeTab === "master" ? paginationOptions : undefined);
+
   const currentProjects = useMemo(() => {
     return activeTab === "active" ? activeProjects : masterProjects;
   }, [activeTab, activeProjects, masterProjects]);
+
   const isLoading = activeTab === "active" ? isActiveLoading : isMasterLoading;
   const isFetching = activeTab === "active" ? isActiveFetching : isMasterFetching;
   const error = activeTab === "active" ? activeError : masterError;
   const pagination = activeTab === "active" ? activePagination : masterPagination;
+
   const columns = useMemo(() => {
     if (currentProjects.length === 0) return [];
     return Object.keys(currentProjects[0]).filter(column => !HIDDEN_COLUMNS.includes(column));
   }, [currentProjects]);
+
   const numberColumns = useMemo(() => columns.filter(column => currentProjects.length > 0 && isNumber(currentProjects[0][column]) && !isArrayColumn(currentProjects, column) && column !== 'account'), [columns, currentProjects]);
   const dateColumns = useMemo(() => columns.filter(column => currentProjects.length > 0 && isDateColumn(column)), [columns, currentProjects.length]);
   const arrayColumns = useMemo(() => columns.filter(column => currentProjects.length > 0 && isArrayColumn(currentProjects, column)), [columns, currentProjects]);
+
   React.useEffect(() => {
     if (currentProjects.length > 0) {
       const initialRanges: Record<string, {
@@ -78,8 +98,10 @@ const DataPage = () => {
       setNumberRangeFilters(initialRanges);
     }
   }, [currentProjects.length > 0, numberColumns.join(',')]);
+
   const filteredProjects = useMemo(() => filterProjects(currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters), [currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters]);
   const sortedProjects = useMemo(() => sortProjects(filteredProjects, sortColumn, sortDirection), [filteredProjects, sortColumn, sortDirection]);
+
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -88,6 +110,7 @@ const DataPage = () => {
       setSortDirection("asc");
     }
   };
+
   const handleFilterSelectionChange = (column: string, value: string, checked: boolean) => {
     setSelectedFilters(prev => {
       const current = prev[column] || [];
@@ -104,6 +127,7 @@ const DataPage = () => {
       }
     });
   };
+
   const clearColumnFilters = (column: string) => {
     setSelectedFilters(prev => {
       const newFilters = {
@@ -113,9 +137,11 @@ const DataPage = () => {
       return newFilters;
     });
   };
+
   const getUniqueValues = (column: string): string[] => {
     return getUniqueColumnValues(currentProjects, column);
   };
+
   const handleRangeChange = (column: string, values: number[]) => {
     setNumberRangeFilters(prev => ({
       ...prev,
@@ -125,12 +151,14 @@ const DataPage = () => {
       }
     }));
   };
+
   const applyDateFilter = (column: string, filter: DateFilter) => {
     setDateFilters(prev => ({
       ...prev,
       [column]: filter
     }));
   };
+
   const clearDateFilter = (column: string) => {
     setDateFilters(prev => {
       const newFilters = {
@@ -140,6 +168,7 @@ const DataPage = () => {
       return newFilters;
     });
   };
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     setSortColumn(null);
@@ -150,11 +179,13 @@ const DataPage = () => {
     setDateFilterPopoverOpen({});
     setPageIndex(0);
   };
+
   const handlePageChange = (newPageIndex: number) => {
     if (newPageIndex >= 0 && newPageIndex < pagination.pageCount) {
       setPageIndex(newPageIndex);
     }
   };
+
   const handleLoadAll = async () => {
     try {
       setIsLoadingAll(true);
@@ -173,6 +204,7 @@ const DataPage = () => {
       setIsLoadingAll(false);
     }
   };
+
   const handleExportCSV = () => {
     if (currentProjects.length === 0) {
       toast.error("No data to export");
@@ -203,6 +235,7 @@ const DataPage = () => {
     document.body.removeChild(link);
     toast.success("Data exported successfully!");
   };
+
   const renderTableControls = (isActiveTab: boolean) => {
     const currentPagination = isActiveTab ? activePagination : masterPagination;
     const currentIsFetching = isActiveTab ? isActiveFetching : isMasterFetching;
@@ -232,6 +265,7 @@ const DataPage = () => {
         </div>
       </div>;
   };
+
   const renderPagination = () => {
     if (pagination?.pageCount <= 1 || sortedProjects.length === 0) {
       return null;
@@ -274,6 +308,7 @@ const DataPage = () => {
         </Pagination>
       </div>;
   };
+
   return <div className="h-full w-full flex flex-col">
       <Tabs defaultValue="active" className="w-full h-full" onValueChange={handleTabChange}>
         <div className="px-4 mt-4 py-0">
@@ -311,4 +346,5 @@ const DataPage = () => {
       </Tabs>
     </div>;
 };
+
 export default DataPage;
