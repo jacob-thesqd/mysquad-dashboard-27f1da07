@@ -208,10 +208,10 @@ const DataPage = () => {
       return null;
     }
     return <div className="mt-4 flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs text-muted-foreground mb-4 ml-2">
           Page {pageIndex + 1} of {pagination?.pageCount || 1}
         </div>
-        <Pagination>
+        <Pagination className="mb-4 max-w-[1000px]">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious onClick={() => handlePageChange(pageIndex - 1)} className={pageIndex === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"} />
