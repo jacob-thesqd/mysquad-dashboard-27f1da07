@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
-import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, WavesLadder } from "lucide-react";
+import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, Waves } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -97,7 +97,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 Files
               </SidebarItem>
               <SidebarItem 
-                icon={WavesLadder} 
+                icon={Waves} 
                 active={location.pathname === "/Task Deep Dive"} 
                 onClick={() => handleNavigation("/deep-dive")}
               >
