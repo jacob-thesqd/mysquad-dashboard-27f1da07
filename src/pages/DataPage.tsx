@@ -299,8 +299,8 @@ const DataPage = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 mr-4">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">
+                  
+                  <span className="text-xs font-small">
                     Showing {sortedProjects.length} of {pagination?.totalCount || 0} projects
                   </span>
                 </div>

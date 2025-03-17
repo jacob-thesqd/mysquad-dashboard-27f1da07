@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
@@ -24,7 +23,6 @@ const getColumnWidthClass = (column: string): string => {
   }
   return 'min-w-[180px]';
 };
-
 interface DataTableProps {
   data: any[];
   columns: string[];
@@ -47,7 +45,6 @@ interface DataTableProps {
   applyDateFilter: (column: string, filter: DateFilter) => void;
   clearDateFilter: (column: string) => void;
 }
-
 const DataTable: React.FC<DataTableProps> = ({
   data,
   columns,
@@ -71,10 +68,10 @@ const DataTable: React.FC<DataTableProps> = ({
   clearDateFilter
 }) => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Calculate approximate row height
   const estimatedRowHeight = 48; // Adjust based on your actual row height
-  
+
   // Set up virtualizer for table rows
   const rowVirtualizer = useVirtualizer({
     count: data.length,
@@ -82,13 +79,13 @@ const DataTable: React.FC<DataTableProps> = ({
     estimateSize: () => estimatedRowHeight,
     overscan: 10 // Show extra rows beyond the visible area for smoother scrolling
   });
-  
+
   // Get virtualized rows
   const virtualRows = rowVirtualizer.getVirtualItems();
-  
+
   // Calculate total height of all rows
   const totalHeight = data.length * estimatedRowHeight;
-  
+
   // Log virtualization details
   useEffect(() => {
     console.log(`Virtualizing ${data.length} rows, showing ${virtualRows.length} virtual rows`);
@@ -100,133 +97,75 @@ const DataTable: React.FC<DataTableProps> = ({
       tableContainerRef.current.scrollTop = 0;
     }
   }, [data, columns]);
-
-  return (
-    <div className="flex-1 border rounded-md overflow-hidden mb-2" ref={tableContainerRef}>
+  return <div ref={tableContainerRef} className="flex-1 border rounded-md overflow-hidden my-0">
       <ScrollArea className="h-full">
         <div className="min-w-full">
           <Table>
             <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                {columns.map(column => (
-                  <TableHead key={column} className={`relative ${getColumnWidthClass(column)}`}>
+                {columns.map(column => <TableHead key={column} className={`relative ${getColumnWidthClass(column)}`}>
                     <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handleSort(column)} 
-                        className="flex items-center gap-1 hover:text-primary"
-                      >
+                      <button onClick={() => handleSort(column)} className="flex items-center gap-1 hover:text-primary">
                         {formatColumnName(column)}
-                        {sortColumn === column && (
-                          sortDirection === "asc" 
-                            ? <ArrowUp className="h-3 w-3" /> 
-                            : <ArrowDown className="h-3 w-3" />
-                        )}
+                        {sortColumn === column && (sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
                       </button>
                       <div className="ml-auto flex items-center">
-                        {dateColumns.includes(column) ? (
-                          <DateFilterPopover
-                            column={column}
-                            isOpen={dateFilterPopoverOpen[column] || false}
-                            onOpenChange={(open) => 
-                              setDateFilterPopoverOpen({...dateFilterPopoverOpen, [column]: open})
-                            }
-                            currentFilter={dateFilters[column]}
-                            onApplyFilter={applyDateFilter}
-                            onClearFilter={clearDateFilter}
-                          />
-                        ) : (
-                          <ColumnFilterPopover 
-                            column={formatColumnName(column)}
-                            isOpen={filterPopoverOpen[column] || false}
-                            onOpenChange={(open) => 
-                              setFilterPopoverOpen({...filterPopoverOpen, [column]: open})
-                            }
-                            columnValues={getUniqueColumnValues(column)}
-                            selectedValues={selectedFilters[column] || []}
-                            onFilterChange={handleFilterSelectionChange}
-                            onClearFilters={clearColumnFilters}
-                          />
-                        )}
+                        {dateColumns.includes(column) ? <DateFilterPopover column={column} isOpen={dateFilterPopoverOpen[column] || false} onOpenChange={open => setDateFilterPopoverOpen({
+                      ...dateFilterPopoverOpen,
+                      [column]: open
+                    })} currentFilter={dateFilters[column]} onApplyFilter={applyDateFilter} onClearFilter={clearDateFilter} /> : <ColumnFilterPopover column={formatColumnName(column)} isOpen={filterPopoverOpen[column] || false} onOpenChange={open => setFilterPopoverOpen({
+                      ...filterPopoverOpen,
+                      [column]: open
+                    })} columnValues={getUniqueColumnValues(column)} selectedValues={selectedFilters[column] || []} onFilterChange={handleFilterSelectionChange} onClearFilters={clearColumnFilters} />}
                       </div>
                     </div>
-                  </TableHead>
-                ))}
+                  </TableHead>)}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
+              {isLoading ? <TableRow>
                   <TableCell colSpan={columns.length} className="text-center py-8">
                     Loading data...
                   </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
+                </TableRow> : error ? <TableRow>
                   <TableCell colSpan={columns.length} className="text-center py-8 text-red-500">
                     Error loading data: {(error as Error).message}
                   </TableCell>
-                </TableRow>
-              ) : data.length === 0 ? (
-                <TableRow>
+                </TableRow> : data.length === 0 ? <TableRow>
                   <TableCell colSpan={columns.length} className="text-center py-8">
                     No projects found
                   </TableCell>
-                </TableRow>
-              ) : (
-                <>
+                </TableRow> : <>
                   {/* Spacer row at the top */}
-                  {virtualRows.length > 0 && (
-                    <tr>
-                      <td style={{ height: `${virtualRows[0].start}px` }} />
-                    </tr>
-                  )}
+                  {virtualRows.length > 0 && <tr>
+                      <td style={{
+                  height: `${virtualRows[0].start}px`
+                }} />
+                    </tr>}
                   
                   {/* Virtual rows */}
                   {virtualRows.map(virtualRow => {
-                    const project = data[virtualRow.index];
-                    return (
-                      <TableRow
-                        key={virtualRow.key}
-                        data-index={virtualRow.index}
-                        ref={rowVirtualizer.measureElement}
-                      >
-                        {columns.map(column => (
-                          <TableCell key={`${virtualRow.index}-${column}`} className={getColumnWidthClass(column)}>
+                const project = data[virtualRow.index];
+                return <TableRow key={virtualRow.key} data-index={virtualRow.index} ref={rowVirtualizer.measureElement}>
+                        {columns.map(column => <TableCell key={`${virtualRow.index}-${column}`} className={getColumnWidthClass(column)}>
                             <div className="overflow-x-auto hide-scrollbar">
-                              <TableCellContent 
-                                value={project[column]}
-                                column={column}
-                                isDateColumn={dateColumns.includes(column)}
-                                rowData={project}  
-                              />
+                              <TableCellContent value={project[column]} column={column} isDateColumn={dateColumns.includes(column)} rowData={project} />
                             </div>
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    );
-                  })}
+                          </TableCell>)}
+                      </TableRow>;
+              })}
                   
                   {/* Spacer row at the bottom */}
-                  {virtualRows.length > 0 && (
-                    <tr>
-                      <td
-                        style={{
-                          height: `${Math.max(
-                            0,
-                            totalHeight - (virtualRows[virtualRows.length - 1]?.end || 0)
-                          )}px`,
-                        }}
-                      />
-                    </tr>
-                  )}
-                </>
-              )}
+                  {virtualRows.length > 0 && <tr>
+                      <td style={{
+                  height: `${Math.max(0, totalHeight - (virtualRows[virtualRows.length - 1]?.end || 0))}px`
+                }} />
+                    </tr>}
+                </>}
             </TableBody>
           </Table>
         </div>
       </ScrollArea>
-    </div>
-  );
+    </div>;
 };
-
 export default DataTable;
