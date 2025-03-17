@@ -1,8 +1,9 @@
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useVirtualizer } from '@tanstack/react-virtual';
 import TableCellContent from "./TableCellContent";
 import ColumnFilterPopover from "./ColumnFilterPopover";
 import { DateFilter } from "./DateFilterPopover";
@@ -69,9 +70,40 @@ const DataTable: React.FC<DataTableProps> = ({
   applyDateFilter,
   clearDateFilter
 }) => {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate approximate row height
+  const estimatedRowHeight = 48; // Adjust based on your actual row height
+  
+  // Set up virtualizer for table rows
+  const rowVirtualizer = useVirtualizer({
+    count: data.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => estimatedRowHeight,
+    overscan: 10 // Show extra rows beyond the visible area for smoother scrolling
+  });
+  
+  // Get virtualized rows
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  
+  // Calculate total height of all rows
+  const totalHeight = data.length * estimatedRowHeight;
+  
+  // Log virtualization details
+  useEffect(() => {
+    console.log(`Virtualizing ${data.length} rows, showing ${virtualRows.length} virtual rows`);
+  }, [data.length, virtualRows.length]);
+
+  // When the data changes or columns change, scroll back to top
+  useEffect(() => {
+    if (tableContainerRef.current) {
+      tableContainerRef.current.scrollTop = 0;
+    }
+  }, [data, columns]);
+
   return (
-    <div className="flex-1 border rounded-md overflow-hidden mb-2">
-      <ScrollArea className="h-full" orientation="both">
+    <div className="flex-1 border rounded-md overflow-hidden mb-2" ref={tableContainerRef}>
+      <ScrollArea className="h-full">
         <div className="min-w-full">
           <Table>
             <TableHeader className="sticky top-0 bg-background z-10">
@@ -141,22 +173,53 @@ const DataTable: React.FC<DataTableProps> = ({
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((project, index) => (
-                  <TableRow key={index}>
-                    {columns.map(column => (
-                      <TableCell key={`${index}-${column}`} className={getColumnWidthClass(column)}>
-                        <div className="overflow-x-auto hide-scrollbar">
-                          <TableCellContent 
-                            value={project[column]}
-                            column={column}
-                            isDateColumn={dateColumns.includes(column)}
-                            rowData={project}  
-                          />
-                        </div>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                <>
+                  {/* Spacer row at the top */}
+                  {virtualRows.length > 0 && (
+                    <tr>
+                      <td style={{ height: `${virtualRows[0].start}px` }} />
+                    </tr>
+                  )}
+                  
+                  {/* Virtual rows */}
+                  {virtualRows.map(virtualRow => {
+                    const project = data[virtualRow.index];
+                    return (
+                      <TableRow
+                        key={virtualRow.key}
+                        data-index={virtualRow.index}
+                        ref={rowVirtualizer.measureElement}
+                      >
+                        {columns.map(column => (
+                          <TableCell key={`${virtualRow.index}-${column}`} className={getColumnWidthClass(column)}>
+                            <div className="overflow-x-auto hide-scrollbar">
+                              <TableCellContent 
+                                value={project[column]}
+                                column={column}
+                                isDateColumn={dateColumns.includes(column)}
+                                rowData={project}  
+                              />
+                            </div>
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })}
+                  
+                  {/* Spacer row at the bottom */}
+                  {virtualRows.length > 0 && (
+                    <tr>
+                      <td
+                        style={{
+                          height: `${Math.max(
+                            0,
+                            totalHeight - (virtualRows[virtualRows.length - 1]?.end || 0)
+                          )}px`,
+                        }}
+                      />
+                    </tr>
+                  )}
+                </>
               )}
             </TableBody>
           </Table>

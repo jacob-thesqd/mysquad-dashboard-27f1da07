@@ -1,7 +1,9 @@
+
 import React, { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, CheckCircle, Layers } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Filter, CheckCircle, Layers, Download } from "lucide-react";
 import DataTable from "@/components/data/DataTable";
 import { DateFilter } from "@/components/data/DateFilterPopover";
 import {
@@ -16,8 +18,11 @@ import {
   sortProjects,
   getUniqueColumnValues
 } from "@/utils/dataUtils";
-import { useDataFetching } from "@/hooks/useDataFetching";
+import { useDataFetching, PaginationOptions } from "@/hooks/useDataFetching";
 import { toast } from "sonner";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+
+const DEFAULT_PAGE_SIZE = 500;
 
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,29 +37,49 @@ const DataPage = () => {
   const [filterPopoverOpen, setFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [dateFilterPopoverOpen, setDateFilterPopoverOpen] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<string>("active");
+  
+  // Pagination state
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [isLoadingAll, setIsLoadingAll] = useState(false);
+  
+  // Create pagination options object
+  const paginationOptions: PaginationOptions = {
+    pageIndex,
+    pageSize,
+    searchTerm
+  };
 
   const {
     data: activeProjects = [],
     isLoading: isActiveLoading,
-    error: activeError
+    error: activeError,
+    pagination: activePagination,
+    refetch: refetchActive,
+    isFetching: isActiveFetching
   } = useDataFetching(["activeProjects"], "active_projects_mv", {
     enabled: activeTab === "active"
-  });
+  }, activeTab === "active" ? paginationOptions : undefined);
 
   const {
     data: masterProjects = [],
     isLoading: isMasterLoading,
-    error: masterError
+    error: masterError,
+    pagination: masterPagination,
+    refetch: refetchMaster,
+    isFetching: isMasterFetching
   } = useDataFetching(["masterProjects"], "master_project_view_mv", {
     enabled: activeTab === "master"
-  });
+  }, activeTab === "master" ? paginationOptions : undefined);
 
   const currentProjects = useMemo(() => {
     return activeTab === "active" ? activeProjects : masterProjects;
   }, [activeTab, activeProjects, masterProjects]);
 
   const isLoading = activeTab === "active" ? isActiveLoading : isMasterLoading;
+  const isFetching = activeTab === "active" ? isActiveFetching : isMasterFetching;
   const error = activeTab === "active" ? activeError : masterError;
+  const pagination = activeTab === "active" ? activePagination : masterPagination;
 
   const columns = useMemo(() => {
     if (currentProjects.length === 0) return [];
@@ -68,7 +93,7 @@ const DataPage = () => {
       !isArrayColumn(currentProjects, column) && 
       column !== 'account'
     ), 
-    [columns, currentProjects.length]
+    [columns, currentProjects]
   );
 
   const dateColumns = useMemo(() => 
@@ -84,7 +109,7 @@ const DataPage = () => {
       currentProjects.length > 0 && 
       isArrayColumn(currentProjects, column)
     ), 
-    [columns, currentProjects.length]
+    [columns, currentProjects]
   );
 
   React.useEffect(() => {
@@ -179,6 +204,78 @@ const DataPage = () => {
     setDateFilters({});
     setFilterPopoverOpen({});
     setDateFilterPopoverOpen({});
+    setPageIndex(0); // Reset to first page when changing tabs
+  };
+
+  const handlePageChange = (newPageIndex: number) => {
+    if (newPageIndex >= 0 && newPageIndex < pagination.pageCount) {
+      setPageIndex(newPageIndex);
+    }
+  };
+
+  const handleLoadAll = async () => {
+    try {
+      setIsLoadingAll(true);
+      toast.info("Loading all data, this may take a moment...");
+      
+      // Temporarily increase page size to a very large number to load all records
+      setPageSize(10000);
+      
+      // Refetch data with the new page size
+      if (activeTab === "active") {
+        await refetchActive();
+      } else {
+        await refetchMaster();
+      }
+      
+      toast.success("All data loaded successfully!");
+    } catch (error) {
+      toast.error("Failed to load all data. Try using pagination instead.");
+      console.error("Load all data error:", error);
+    } finally {
+      setIsLoadingAll(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    try {
+      if (currentProjects.length === 0) {
+        toast.error("No data to export");
+        return;
+      }
+
+      // Convert data to CSV format
+      const headers = columns.join(',');
+      const csvRows = [headers];
+      
+      sortedProjects.forEach(project => {
+        const values = columns.map(column => {
+          const value = project[column];
+          // Handle different data types
+          if (value === null || value === undefined) return '';
+          if (Array.isArray(value)) return `"${value.join('; ')}"`;
+          if (typeof value === 'object') return `"${JSON.stringify(value)}"`;
+          return `"${value}"`;
+        });
+        csvRows.push(values.join(','));
+      });
+      
+      // Create and download CSV file
+      const csvString = csvRows.join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${activeTab}_projects_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Data exported successfully!");
+    } catch (error) {
+      toast.error("Failed to export data");
+      console.error("Export error:", error);
+    }
   };
 
   return (
@@ -210,10 +307,30 @@ const DataPage = () => {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  Showing {sortedProjects.length} of {activeProjects.length} projects
-                </span>
+                <div className="flex items-center gap-2 mr-4">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    Showing {sortedProjects.length} of {pagination?.totalCount || 0} projects
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLoadAll}
+                  disabled={isLoadingAll}
+                  className="mr-2"
+                >
+                  {isLoadingAll ? "Loading..." : "Load All"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportCSV}
+                  disabled={isLoading || currentProjects.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
               </div>
             </div>
             
@@ -222,7 +339,7 @@ const DataPage = () => {
               columns={columns}
               dateColumns={dateColumns}
               arrayColumns={arrayColumns}
-              isLoading={isLoading}
+              isLoading={isLoading || isFetching}
               error={error}
               sortColumn={sortColumn}
               sortDirection={sortDirection}
@@ -239,6 +356,58 @@ const DataPage = () => {
               applyDateFilter={applyDateFilter}
               clearDateFilter={clearDateFilter}
             />
+
+            {/* Pagination controls */}
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Page {pageIndex + 1} of {pagination?.pageCount || 1}
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => handlePageChange(pageIndex - 1)}
+                      className={pageIndex === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {/* Show current page and neighboring pages */}
+                  {Array.from({ length: Math.min(5, pagination?.pageCount || 1) }, (_, i) => {
+                    // Logic to show pages around current page
+                    let pageNum = pageIndex;
+                    if (pageIndex < 2) {
+                      pageNum = i;
+                    } else if (pageIndex >= (pagination?.pageCount || 1) - 2) {
+                      pageNum = (pagination?.pageCount || 1) - 5 + i;
+                    } else {
+                      pageNum = pageIndex - 2 + i;
+                    }
+                    
+                    // Make sure page number is valid
+                    if (pageNum >= 0 && pageNum < (pagination?.pageCount || 1)) {
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            isActive={pageIndex === pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                          >
+                            {pageNum + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(pageIndex + 1)}
+                      className={(pageIndex >= (pagination?.pageCount || 1) - 1) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </div>
         </TabsContent>
         
@@ -255,10 +424,30 @@ const DataPage = () => {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  Showing {sortedProjects.length} of {masterProjects.length} projects
-                </span>
+                <div className="flex items-center gap-2 mr-4">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    Showing {sortedProjects.length} of {pagination?.totalCount || 0} projects
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLoadAll}
+                  disabled={isLoadingAll}
+                  className="mr-2"
+                >
+                  {isLoadingAll ? "Loading..." : "Load All"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportCSV}
+                  disabled={isLoading || currentProjects.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
               </div>
             </div>
             
@@ -267,7 +456,7 @@ const DataPage = () => {
               columns={columns}
               dateColumns={dateColumns}
               arrayColumns={arrayColumns}
-              isLoading={isLoading}
+              isLoading={isLoading || isFetching}
               error={error}
               sortColumn={sortColumn}
               sortDirection={sortDirection}
@@ -284,6 +473,58 @@ const DataPage = () => {
               applyDateFilter={applyDateFilter}
               clearDateFilter={clearDateFilter}
             />
+
+            {/* Pagination controls */}
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Page {pageIndex + 1} of {pagination?.pageCount || 1}
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => handlePageChange(pageIndex - 1)}
+                      className={pageIndex === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {/* Show current page and neighboring pages */}
+                  {Array.from({ length: Math.min(5, pagination?.pageCount || 1) }, (_, i) => {
+                    // Logic to show pages around current page
+                    let pageNum = pageIndex;
+                    if (pageIndex < 2) {
+                      pageNum = i;
+                    } else if (pageIndex >= (pagination?.pageCount || 1) - 2) {
+                      pageNum = (pagination?.pageCount || 1) - 5 + i;
+                    } else {
+                      pageNum = pageIndex - 2 + i;
+                    }
+                    
+                    // Make sure page number is valid
+                    if (pageNum >= 0 && pageNum < (pagination?.pageCount || 1)) {
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            isActive={pageIndex === pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                          >
+                            {pageNum + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(pageIndex + 1)}
+                      className={(pageIndex >= (pagination?.pageCount || 1) - 1) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

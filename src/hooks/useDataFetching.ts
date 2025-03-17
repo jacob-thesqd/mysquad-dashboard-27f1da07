@@ -11,70 +11,138 @@ const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 // Define allowed table names as a type for better type safety
 type AllowedTable = "active_projects_mv" | "master_project_view_mv";
 
-export function useDataFetching(queryKey: QueryKey, tableName: AllowedTable, options = { enabled: true }) {
+// Pagination options interface
+export interface PaginationOptions {
+  pageIndex: number;
+  pageSize: number;
+  searchTerm?: string;
+}
+
+// Pagination result interface
+export interface PaginationResult<T> {
+  data: T[];
+  count: number;
+  pageCount: number;
+}
+
+export function useDataFetching(
+  queryKey: QueryKey, 
+  tableName: AllowedTable, 
+  options = { enabled: true },
+  paginationOptions?: PaginationOptions
+) {
   const queryClient = useQueryClient();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
-  // Fetch active projects data
+  // Default pagination values if not provided
+  const pageIndex = paginationOptions?.pageIndex ?? 0;
+  const pageSize = paginationOptions?.pageSize ?? 500;
+  const searchTerm = paginationOptions?.searchTerm ?? '';
+
+  // Calculate start and end for pagination
+  const start = pageIndex * pageSize;
+  const end = start + pageSize - 1;
+
+  // Fetch data with pagination
   const {
     data = [],
     isLoading,
     error,
-    refetch
+    refetch,
+    isFetching
   } = useQuery({
-    queryKey,
+    queryKey: [...queryKey, pageIndex, pageSize, searchTerm],
     queryFn: async () => {
       try {
-        if (tableName === "active_projects_mv") {
-          const { data, error } = await supabase.from(tableName).select("*");
-          if (error) throw new Error(error.message);
-          return data as ProjectData[];
-        } else {
-          // For master_project_view_mv, use pagination to fetch all rows
-          return await fetchAllPages(tableName);
+        console.log(`Fetching data from ${tableName} with range: ${start}-${end}`);
+        
+        let query = supabase.from(tableName).select('*', { count: 'exact' });
+        
+        // Add search filter if provided
+        if (searchTerm) {
+          // This is a simple example - you might need to adjust based on your search fields
+          query = query.or(`name.ilike.%${searchTerm}%,church.ilike.%${searchTerm}%`);
         }
+        
+        // Add pagination
+        const { data, error, count } = await query.range(start, end);
+        
+        if (error) {
+          console.error(`Error fetching data from ${tableName}:`, error);
+          throw new Error(error.message);
+        }
+        
+        // Store the total count
+        if (count !== null) {
+          setTotalCount(count);
+        }
+        
+        console.log(`Fetched ${data?.length || 0} rows from ${tableName}`);
+        return data as ProjectData[];
       } catch (err) {
         console.error(`Error fetching data from ${tableName}:`, err);
         toast.error(`Failed to load data: ${(err as Error).message}`);
         throw err;
       }
     },
-    staleTime: CACHE_TIME, // Data considered fresh for 5 minutes
-    gcTime: CACHE_TIME,    // Keep in cache for 5 minutes (was cacheTime in v4)
+    staleTime: CACHE_TIME,
+    gcTime: CACHE_TIME,
     ...options
   });
 
-  // Load data in the background when the component mounts
+  // Prefetch next page
   useEffect(() => {
-    if (isInitialLoad && options.enabled) {
-      // Prefetch and cache data
+    if (!isLoading && !isFetching && data.length > 0) {
+      const nextPageIndex = pageIndex + 1;
+      const nextPageStart = nextPageIndex * pageSize;
+      const nextPageEnd = nextPageStart + pageSize - 1;
+      
+      // Prefetch next page
       queryClient.prefetchQuery({
-        queryKey,
+        queryKey: [...queryKey, nextPageIndex, pageSize, searchTerm],
         queryFn: async () => {
           try {
-            if (tableName === "active_projects_mv") {
-              const { data, error } = await supabase.from(tableName).select("*");
-              if (error) throw new Error(error.message);
-              return data as ProjectData[];
-            } else {
-              return await fetchAllPages(tableName);
+            let query = supabase.from(tableName).select('*');
+            
+            if (searchTerm) {
+              query = query.or(`name.ilike.%${searchTerm}%,church.ilike.%${searchTerm}%`);
             }
+            
+            const { data, error } = await query.range(nextPageStart, nextPageEnd);
+            
+            if (error) throw new Error(error.message);
+            return data as ProjectData[];
           } catch (err) {
-            console.error(`Error prefetching data from ${tableName}:`, err);
+            console.error(`Error prefetching next page from ${tableName}:`, err);
             return [];
           }
         },
         staleTime: CACHE_TIME
       });
-      setIsInitialLoad(false);
     }
-  }, [queryClient, queryKey, tableName, isInitialLoad, options.enabled]);
+  }, [pageIndex, pageSize, data, isLoading, isFetching, queryClient, queryKey, tableName, searchTerm]);
 
-  return { data, isLoading, error, refetch };
+  // Calculate total page count
+  const pageCount = Math.ceil(totalCount / pageSize);
+
+  return { 
+    data, 
+    isLoading, 
+    error, 
+    refetch, 
+    isFetching,
+    pagination: {
+      pageIndex,
+      pageSize,
+      pageCount,
+      totalCount
+    }
+  };
 }
 
-// Helper function to fetch all pages of data
-async function fetchAllPages(tableName: AllowedTable): Promise<ProjectData[]> {
+// Helper function to fetch all pages of data (for legacy support)
+export async function fetchAllPages(tableName: AllowedTable): Promise<ProjectData[]> {
   const pageSize = 1000;
   let page = 0;
   let hasMore = true;
