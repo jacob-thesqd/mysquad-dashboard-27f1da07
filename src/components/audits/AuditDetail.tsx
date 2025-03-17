@@ -69,19 +69,8 @@ export function AuditDetail({
     <ScrollArea className="h-[calc(100vh-12rem)]">
       <div className="space-y-6 pr-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">{audit.data.taskData.taskName}</CardTitle>
-          </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-semibold mb-1">Task ID</h4>
-                <p className="text-sm">{audit.task_id}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold mb-1">Created</h4>
-                <p className="text-sm">{new Date(audit.created_at).toLocaleString()}</p>
-              </div>
               <div>
                 <h4 className="text-sm font-semibold mb-1">Status</h4>
                 <div className="flex items-center">
