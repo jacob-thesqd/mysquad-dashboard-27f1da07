@@ -250,7 +250,7 @@ const DataPage = () => {
           <div className="flex items-center gap-2 mr-4">
             <span className="text-sm font-small text-muted-foreground">
               {sortedProjects.length > 0 ? (
-                <>Showing rows {startRow} to {endRow} of {totalRows} projects</>
+                <>Showing rows {startRow} to {endRow} of {totalRows}</>
               ) : (
                 <>No projects found</>
               )}
