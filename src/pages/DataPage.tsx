@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -364,5 +365,79 @@ const DataPage = () => {
               clearDateFilter={clearDateFilter} 
             />
 
-            {
+            {renderPagination()}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="master" className="flex-1 h-[calc(100%-3rem)]">
+          <div className="p-4 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <div className="relative w-80">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search projects..." 
+                  className="pl-8" 
+                  value={searchTerm} 
+                  onChange={e => setSearchTerm(e.target.value)} 
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mr-4">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    Showing {sortedProjects.length} of {pagination?.totalCount || 0} projects
+                  </span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleLoadAll} 
+                  disabled={isLoadingAll} 
+                  className="mr-2"
+                >
+                  {isLoadingAll ? "Loading..." : "Load All"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleExportCSV} 
+                  disabled={isLoading || currentProjects.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
+            </div>
+            
+            <DataTable 
+              data={sortedProjects} 
+              columns={columns} 
+              dateColumns={dateColumns} 
+              arrayColumns={arrayColumns} 
+              isLoading={isLoading || isFetching} 
+              error={error} 
+              sortColumn={sortColumn} 
+              sortDirection={sortDirection} 
+              selectedFilters={selectedFilters} 
+              dateFilters={dateFilters} 
+              filterPopoverOpen={filterPopoverOpen} 
+              dateFilterPopoverOpen={dateFilterPopoverOpen} 
+              handleSort={handleSort} 
+              getUniqueColumnValues={getUniqueValues} 
+              handleFilterSelectionChange={handleFilterSelectionChange} 
+              clearColumnFilters={clearColumnFilters} 
+              setFilterPopoverOpen={setFilterPopoverOpen} 
+              setDateFilterPopoverOpen={setDateFilterPopoverOpen} 
+              applyDateFilter={applyDateFilter} 
+              clearDateFilter={clearDateFilter} 
+            />
 
+            {renderPagination()}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default DataPage;
