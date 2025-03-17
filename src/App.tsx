@@ -10,7 +10,8 @@ import AppLayout from "@/components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import DataPage from "./pages/DataPage";
 import Dashboard from "./pages/Dashboard";
-import { Analytics } from '@vercel/analytics/react';
+import Audits from "./pages/Audits";
+import TaskDeepDive from "./pages/TaskDeepDive";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
               <Route path="/data" element={<AppLayout><DataPage /></AppLayout>} />
+              <Route path="/audits" element={<AppLayout><Audits /></AppLayout>} />
+              <Route path="/deep-dive" element={<AppLayout><TaskDeepDive /></AppLayout>} />
               <Route path="/documents" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Documents</h1><p>View and manage your documents</p></div></AppLayout>} />
               <Route path="/team" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Team</h1><p>Manage your team members</p></div></AppLayout>} />
               <Route path="/learning" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Learning</h1><p>Access learning resources</p></div></AppLayout>} />
@@ -36,7 +39,6 @@ const App = () => (
         </SidebarProvider>
       </TooltipProvider>
     </ThemeProvider>
-    <Analytics debug={true} />
   </QueryClientProvider>
 );
 
