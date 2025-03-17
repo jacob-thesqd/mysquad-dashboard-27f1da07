@@ -1,11 +1,12 @@
+
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { inject } from '@vercel/analytics';
 
 inject({
-    mode: 'production', // Use 'development' for testing locally
-    debug: true, // Set to false in production
+    mode: 'production', // Use 'production' mode to ensure analytics are sent
+    debug: true, // You can set this to false in production
     beforeSend: (event) => {
       // Optional: modify or filter events before they're sent
       return event;

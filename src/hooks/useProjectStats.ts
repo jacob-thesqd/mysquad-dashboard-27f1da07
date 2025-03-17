@@ -1,14 +1,13 @@
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-export interface DailyMetric {
+interface DailyMetric {
   count: string;
   type: string;
 }
 
-export interface TaskTrendData {
+interface TimeSeriesData {
   date: string;
   task_count: number;
   type: string;
@@ -21,64 +20,45 @@ export interface ProjectStats {
   tasksInQueue: number;
   queuedToday: number;
   medianAASeconds: number;
-  timeSeriesData: TaskTrendData[];
+  timeSeriesData: TimeSeriesData[];
 }
 
 export const useProjectStats = () => {
-  const [chartDays, setChartDays] = useState(13); // Default to 2 weeks of data
-
-  // Fetch daily metrics
-  const { data: metricsData, isLoading: isLoadingMetrics } = useQuery({
-    queryKey: ["dailyMetrics"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_daily_metrics");
+  return useQuery({
+    queryKey: ['projectStats'],
+    queryFn: async (): Promise<ProjectStats> => {
+      // Fetch the daily metrics
+      const { data: metricsData, error: metricsError } = await supabase.rpc('get_daily_metrics');
       
-      if (error) {
-        console.error("Error fetching daily metrics:", error);
-        return [];
+      if (metricsError) {
+        console.error('Error fetching daily metrics:', metricsError);
+        throw new Error('Failed to fetch daily metrics');
       }
       
-      return data as DailyMetric[];
-    }
-  });
-
-  // Fetch time series data for the chart
-  const { data: trendData, isLoading: isLoadingTrends } = useQuery({
-    queryKey: ["taskTrends", chartDays],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_task_trends", { 
-        days: chartDays 
-      });
+      // Fetch the time series data
+      const { data: trendsData, error: trendsError } = await supabase.rpc('get_task_trends', { days: 13 });
       
-      if (error) {
-        console.error("Error fetching task trends:", error);
-        return [];
+      if (trendsError) {
+        console.error('Error fetching task trends:', trendsError);
+        throw new Error('Failed to fetch task trends');
       }
       
-      return data as TaskTrendData[];
-    }
-  });
-
-  // Process the metrics data into our stats object
-  const getMetricValue = (type: string): number => {
-    if (!metricsData) return 0;
-    const metric = metricsData.find(m => m.type === type);
-    return metric ? parseFloat(metric.count) : 0;
-  };
-
-  const isLoading = isLoadingMetrics || isLoadingTrends;
-
-  return {
-    stats: {
-      tasksCreatedToday: getMetricValue("tasks_created_today"),
-      designTasksCreatedToday: getMetricValue("design_video_tasks_created_today"),
-      tasksAutoAssignedToday: getMetricValue("aa_today"),
-      tasksInQueue: getMetricValue("total_queued"),
-      queuedToday: getMetricValue("queued_today"),
-      medianAASeconds: getMetricValue("median_aa_seconds"),
-      timeSeriesData: trendData || []
+      // Cast the metrics data to the correct type
+      const typedMetricsData = metricsData as DailyMetric[];
+      
+      // Parse the metrics data into the ProjectStats format
+      const stats: ProjectStats = {
+        tasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'tasks_created_today')?.count || 0),
+        designTasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'design_video_tasks_created_today')?.count || 0),
+        tasksAutoAssignedToday: Number(typedMetricsData.find(m => m.type === 'aa_today')?.count || 0),
+        tasksInQueue: Number(typedMetricsData.find(m => m.type === 'total_queued')?.count || 0),
+        queuedToday: Number(typedMetricsData.find(m => m.type === 'queued_today')?.count || 0),
+        medianAASeconds: Number(typedMetricsData.find(m => m.type === 'median_aa_seconds')?.count || 0),
+        timeSeriesData: trendsData as TimeSeriesData[],
+      };
+      
+      return stats;
     },
-    isLoading,
-    setChartDays
-  };
+    refetchInterval: 60000, // Refetch every minute
+  });
 };
