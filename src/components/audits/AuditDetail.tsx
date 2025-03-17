@@ -53,7 +53,7 @@ export function AuditDetail({
   }
   return <ScrollArea className="h-[calc(100vh-12rem)]">
       <div className="space-y-6 pr-4">
-        <Card>
+        <Card className="pt-2">
           <CardContent className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
