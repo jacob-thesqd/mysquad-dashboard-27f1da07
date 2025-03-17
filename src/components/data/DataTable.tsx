@@ -102,7 +102,7 @@ const DataTable: React.FC<DataTableProps> = ({
   }, [data, columns]);
 
   return <div ref={tableContainerRef} className="flex-1 border rounded-md overflow-hidden my-0">
-    
+    <ScrollArea className="h-full">
         <div className="min-w-full">
           <Table>
             <TableHeader className="sticky top-0 bg-background z-10">
@@ -169,10 +169,8 @@ const DataTable: React.FC<DataTableProps> = ({
             </TableBody>
           </Table>
         </div>
-      
+      </ScrollArea>
     </div>;
 };
 
 export default DataTable;
-
-    //<ScrollArea className="h-full"></ScrollArea>
