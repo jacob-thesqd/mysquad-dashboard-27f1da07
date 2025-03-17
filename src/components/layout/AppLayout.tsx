@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
-import { MapPin, Settings, ChevronsUpDown, GalleryVerticalEnd, Award, Package, SunMoon, LogOut, SquareChartGantt, UsersRound } from "lucide-react";
+import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, WavesLadder } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -90,16 +90,16 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 Data
               </SidebarItem>
               <SidebarItem 
-                icon={GalleryVerticalEnd} 
-                active={location.pathname === "/documents"} 
-                onClick={() => handleNavigation("/documents")}
+                icon={AudioWaveform} 
+                active={location.pathname === "/Audits"} 
+                onClick={() => handleNavigation("/audits")}
               >
                 Files
               </SidebarItem>
               <SidebarItem 
-                icon={UsersRound} 
-                active={location.pathname === "/team"} 
-                onClick={() => handleNavigation("/team")}
+                icon={WavesLadder} 
+                active={location.pathname === "/Task Deep Dive"} 
+                onClick={() => handleNavigation("/deep-dive")}
               >
                 Team
               </SidebarItem>
