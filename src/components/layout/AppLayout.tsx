@@ -80,7 +80,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 active={location.pathname === "/"} 
                 onClick={() => handleNavigation("/")}
               >
-                Dashboard
+                Home
               </SidebarItem>
               <SidebarItem 
                 icon={SquareChartGantt} 
@@ -91,17 +91,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               </SidebarItem>
               <SidebarItem 
                 icon={AudioWaveform} 
-                active={location.pathname === "/Audits"} 
+                active={location.pathname === "/audits"} 
                 onClick={() => handleNavigation("/audits")}
               >
-                Files
+                Audits
               </SidebarItem>
               <SidebarItem 
                 icon={Waves} 
-                active={location.pathname === "/Task Deep Dive"} 
+                active={location.pathname === "/deep-dive"} 
                 onClick={() => handleNavigation("/deep-dive")}
               >
-                Team
+                Task Deep Dive
               </SidebarItem>
             </SidebarSection>
           </div>
