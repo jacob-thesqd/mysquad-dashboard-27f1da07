@@ -62,7 +62,7 @@ export function AuditSidebar({
                 </div>
                 <div className="text-sm">
                   <span className="px-2 py-1 text-xs rounded-full bg-muted">
-                    {audit.reason}
+                    {audit.reason.replaceAll('_'," ").charAt(0).toUpperCase() + text.substring(1).toLowerCase()}
                   </span>
                 </div>
               </div>
