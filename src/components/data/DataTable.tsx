@@ -175,4 +175,4 @@ const DataTable: React.FC<DataTableProps> = ({
 
 export default DataTable;
 
-    {//<ScrollArea className="h-full">}{//</ScrollArea>}
+    //<ScrollArea className="h-full"></ScrollArea>
