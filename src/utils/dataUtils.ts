@@ -142,10 +142,28 @@ export const filterProjects = (
   dateFilters: Record<string, DateFilter>
 ): ProjectData[] => {
   return projects.filter(project => {
-    // If no search term, continue to other filters
-    if (searchTerm && !Object.values(project).some(value => 
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
-    )) {
+    // Search term filtering - check all fields
+    if (searchTerm && !Object.entries(project).some(([key, value]) => {
+      // Skip hidden columns and null/undefined values
+      if (HIDDEN_COLUMNS.includes(key) || value === null || value === undefined) {
+        return false;
+      }
+      
+      // Handle arrays by checking each item
+      if (Array.isArray(value)) {
+        return value.some(item => 
+          String(item).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      
+      // Handle objects by stringifying them
+      if (typeof value === 'object') {
+        return JSON.stringify(value).toLowerCase().includes(searchTerm.toLowerCase());
+      }
+      
+      // Handle simple values
+      return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+    })) {
       return false;
     }
 

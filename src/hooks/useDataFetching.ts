@@ -37,7 +37,7 @@ export function useDataFetching(
 
   // Default pagination values if not provided
   const pageIndex = paginationOptions?.pageIndex ?? 0;
-  const pageSize = paginationOptions?.pageSize ?? 500;
+  const pageSize = paginationOptions?.pageSize ?? 1000; // Changed default from 500 to 1000
   const searchTerm = paginationOptions?.searchTerm ?? '';
 
   // Calculate start and end for pagination
@@ -98,30 +98,33 @@ export function useDataFetching(
       const nextPageStart = nextPageIndex * pageSize;
       const nextPageEnd = nextPageStart + pageSize - 1;
       
-      // Prefetch next page
-      queryClient.prefetchQuery({
-        queryKey: [...queryKey, nextPageIndex, pageSize, searchTerm],
-        queryFn: async () => {
-          try {
-            let query = supabase.from(tableName).select('*');
-            
-            if (searchTerm) {
-              query = query.or(`name.ilike.%${searchTerm}%,church.ilike.%${searchTerm}%`);
+      // Only prefetch if there are more pages
+      if (totalCount > nextPageStart) {
+        // Prefetch next page
+        queryClient.prefetchQuery({
+          queryKey: [...queryKey, nextPageIndex, pageSize, searchTerm],
+          queryFn: async () => {
+            try {
+              let query = supabase.from(tableName).select('*');
+              
+              if (searchTerm) {
+                query = query.or(`name.ilike.%${searchTerm}%,church.ilike.%${searchTerm}%`);
+              }
+              
+              const { data, error } = await query.range(nextPageStart, nextPageEnd);
+              
+              if (error) throw new Error(error.message);
+              return data as ProjectData[];
+            } catch (err) {
+              console.error(`Error prefetching next page from ${tableName}:`, err);
+              return [];
             }
-            
-            const { data, error } = await query.range(nextPageStart, nextPageEnd);
-            
-            if (error) throw new Error(error.message);
-            return data as ProjectData[];
-          } catch (err) {
-            console.error(`Error prefetching next page from ${tableName}:`, err);
-            return [];
-          }
-        },
-        staleTime: CACHE_TIME
-      });
+          },
+          staleTime: CACHE_TIME
+        });
+      }
     }
-  }, [pageIndex, pageSize, data, isLoading, isFetching, queryClient, queryKey, tableName, searchTerm]);
+  }, [pageIndex, pageSize, data, isLoading, isFetching, queryClient, queryKey, tableName, searchTerm, totalCount]);
 
   // Calculate total page count
   const pageCount = Math.ceil(totalCount / pageSize);
@@ -143,7 +146,7 @@ export function useDataFetching(
 
 // Helper function to fetch all pages of data (for legacy support)
 export async function fetchAllPages(tableName: AllowedTable): Promise<ProjectData[]> {
-  const pageSize = 1000;
+  const pageSize = 1000; // Changed from 1000 to 1000 (already was 1000)
   let page = 0;
   let hasMore = true;
   let allData: ProjectData[] = [];
