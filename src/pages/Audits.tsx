@@ -7,7 +7,7 @@ import { AuditDetail } from "@/components/audits/AuditDetail";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Audits = () => {
-  const { pendingAudits, completedAudits, isLoading, markAsComplete } = useTaskAudits();
+  const { pendingAudits, completedAudits, isLoading, markAsComplete, getTaskDetails } = useTaskAudits();
   const [selectedAudit, setSelectedAudit] = useState<TaskAudit | null>(null);
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
 
@@ -63,6 +63,7 @@ const Audits = () => {
               onMarkComplete={handleMarkComplete}
               isLoading={isLoading}
               isCompleting={markAsComplete.isPending}
+              onFetchTaskDetails={getTaskDetails}
             />
           </div>
         </div>

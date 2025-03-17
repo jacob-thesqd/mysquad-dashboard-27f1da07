@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TaskAudit } from "@/types/audit";
+import { TaskAudit, TaskDetails } from "@/types/audit";
 import { toast } from "sonner";
 
 export function useTaskAudits() {
@@ -54,6 +54,29 @@ export function useTaskAudits() {
     },
   });
 
+  const fetchTaskDetails = async (taskId: string): Promise<TaskDetails> => {
+    try {
+      const response = await fetch(`https://sis2.thesqd.com/webhook/get-task?task_id=${taskId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch task details: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data as TaskDetails;
+    } catch (error) {
+      console.error('Error fetching task details:', error);
+      toast.error('Failed to load task details');
+      throw error;
+    }
+  };
+
+  const getTaskDetails = (taskId: string) => {
+    return queryClient.fetchQuery({
+      queryKey: ['taskDetails', taskId],
+      queryFn: () => fetchTaskDetails(taskId),
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+  };
+
   const pendingAudits = audits?.filter(audit => audit.row_updated === null) || [];
   const completedAudits = audits?.filter(audit => audit.row_updated !== null) || [];
 
@@ -63,6 +86,7 @@ export function useTaskAudits() {
     completedAudits,
     isLoading,
     error,
-    markAsComplete
+    markAsComplete,
+    getTaskDetails
   };
 }
