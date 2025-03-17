@@ -10,6 +10,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import DataPage from "./pages/DataPage";
 import Dashboard from "./pages/Dashboard";
+import { Analytics } from "@vercel/analytics/react"
 
 const queryClient = new QueryClient();
 

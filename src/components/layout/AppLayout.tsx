@@ -6,7 +6,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Analytics } from "@vercel/analytics/react"
 
 interface AppLayoutProps {
   children: React.ReactNode;
