@@ -11,6 +11,7 @@ interface StatsCardProps {
   filterParam?: string;
   changePercent?: number;
   isLoading?: boolean;
+  valueFormatter?: (value: number) => string;
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({
@@ -20,7 +21,8 @@ const StatsCard: React.FC<StatsCardProps> = ({
   description,
   filterParam,
   changePercent,
-  isLoading = false
+  isLoading = false,
+  valueFormatter
 }) => {
   const navigate = useNavigate();
 
@@ -29,6 +31,8 @@ const StatsCard: React.FC<StatsCardProps> = ({
       navigate(`/data?tab=master&filter=${encodeURIComponent(filterParam)}`);
     }
   };
+
+  const formattedValue = valueFormatter ? valueFormatter(value) : value.toLocaleString();
 
   return (
     <Card 
@@ -42,7 +46,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
             {isLoading ? (
               <div className="h-8 w-24 animate-pulse bg-gray-200 dark:bg-gray-700 rounded mt-1"></div>
             ) : (
-              <h3 className="text-2xl font-bold mt-1">{value.toLocaleString()}</h3>
+              <h3 className="text-2xl font-bold mt-1">{formattedValue}</h3>
             )}
             {description && (
               <p className="text-xs text-muted-foreground mt-1">{description}</p>

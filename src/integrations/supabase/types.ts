@@ -5449,6 +5449,13 @@ export type Database = {
           query_usage_ratio: number
         }[]
       }
+      get_daily_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          count: number
+          type: string
+        }[]
+      }
       get_database_summary: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -5765,6 +5772,16 @@ export type Database = {
         Returns: {
           task_id: string
           status: string
+        }[]
+      }
+      get_task_trends: {
+        Args: {
+          days?: number
+        }
+        Returns: {
+          date: string
+          task_count: number
+          type: string
         }[]
       }
       get_trigger_stats: {

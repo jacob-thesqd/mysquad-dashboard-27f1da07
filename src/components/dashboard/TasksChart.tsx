@@ -3,10 +3,10 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toggle } from "@/components/ui/toggle";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { TimeSeriesDataPoint } from "@/hooks/useProjectStats";
+import { TaskTrendData } from "@/hooks/useProjectStats";
 
 interface TasksChartProps {
-  data: TimeSeriesDataPoint[];
+  data: TaskTrendData[];
   isLoading?: boolean;
 }
 
@@ -16,6 +16,35 @@ const TasksChart: React.FC<TasksChartProps> = ({ data, isLoading = false }) => {
   const handleToggleChange = () => {
     setShowDesignOnly(!showDesignOnly);
   };
+
+  // Process and prepare the data for the chart
+  const prepareChartData = () => {
+    if (!data || data.length === 0) return [];
+    
+    // Group by date
+    const dateGroups = data.reduce((acc, item) => {
+      if (!acc[item.date]) {
+        acc[item.date] = {
+          date: item.date,
+          allTasks: 0,
+          designTasks: 0
+        };
+      }
+      if (item.type === 'total') {
+        acc[item.date].allTasks = item.task_count;
+      } else if (item.type === 'design/video') {
+        acc[item.date].designTasks = item.task_count;
+      }
+      return acc;
+    }, {} as Record<string, any>);
+    
+    // Convert to array and sort by date
+    return Object.values(dateGroups).sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  };
+
+  const chartData = prepareChartData();
 
   if (isLoading) {
     return (
@@ -34,7 +63,7 @@ const TasksChart: React.FC<TasksChartProps> = ({ data, isLoading = false }) => {
     <Card className="col-span-4">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">Task Creation Trend (Last 7 Days)</CardTitle>
+          <CardTitle className="text-lg">Task Creation Trend</CardTitle>
           <Toggle pressed={showDesignOnly} onPressedChange={handleToggleChange}>
             {showDesignOnly ? "Design/Video Only" : "All Tasks"}
           </Toggle>
@@ -43,15 +72,22 @@ const TasksChart: React.FC<TasksChartProps> = ({ data, isLoading = false }) => {
       <CardContent className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={chartData}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
+            <XAxis 
+              dataKey="date" 
+              tickFormatter={(value) => {
+                // Format date to be more readable
+                const date = new Date(value);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }}
+            />
             <YAxis />
             <Tooltip 
               formatter={(value) => [`${value} tasks`, ""]}
-              labelFormatter={(label) => `Date: ${label}`}
+              labelFormatter={(label) => `Date: ${new Date(label).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
             />
             <Legend />
             {!showDesignOnly && (
