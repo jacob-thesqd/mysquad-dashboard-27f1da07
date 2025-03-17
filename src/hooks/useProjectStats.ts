@@ -56,7 +56,7 @@ export const useProjectStats = () => {
       
       // Parse the metrics data into the ProjectStats format
       const stats: ProjectStats = {
-        tasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'tasks_created_today')?.count || 0),
+        tasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'tasks_created_today')?.current_count || 0),
         tasksCreatedAvg: Number(typedMetricsData.find(m => m.type === 'tasks_created_today')?.ytd_daily_avg || 0),
         designTasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'design_video_tasks_created_today')?.current_count || 0),
         designTasksCreatedAvg: Number(typedMetricsData.find(m => m.type === 'design_video_tasks_created_today')?.ytd_daily_avg || 0),
