@@ -240,11 +240,16 @@ const DataPage = () => {
         <div className="relative w-80">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search projects..." 
+            placeholder="Search projects... (min 3 chars)" 
             className="pl-8" 
             value={searchTerm} 
             onChange={e => setSearchTerm(e.target.value)} 
           />
+          {searchTerm.length > 0 && searchTerm.length < 3 && (
+            <div className="text-xs text-muted-foreground mt-1">
+              Type at least 3 characters to search
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 mr-4">

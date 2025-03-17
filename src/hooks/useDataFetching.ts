@@ -1,12 +1,13 @@
 
 import { useQuery, useQueryClient, QueryKey } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectData } from "@/utils/dataUtils";
 import { toast } from "sonner";
 
 // Cache time in minutes
 const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
+const DEBOUNCE_TIME = 500; // 500ms debounce time for search
 
 // Define allowed table names as a type for better type safety
 type AllowedTable = "active_projects_mv" | "master_project_view_mv";
@@ -35,15 +36,39 @@ export function useDataFetching(
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isSearching, setIsSearching] = useState(false);
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Default pagination values if not provided
   const pageIndex = paginationOptions?.pageIndex ?? 0;
-  const pageSize = paginationOptions?.pageSize ?? 1000; // Changed default from 500 to 1000
+  const pageSize = paginationOptions?.pageSize ?? 1000;
   const searchTerm = paginationOptions?.searchTerm ?? '';
 
   // Calculate start and end for pagination
   const start = pageIndex * pageSize;
   const end = start + pageSize - 1;
+
+  // Debounced search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+
+  // Set up debounce for search term
+  useEffect(() => {
+    // Clear any existing timer
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+
+    // Set a new timer to update the debounced search term
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, DEBOUNCE_TIME);
+
+    // Cleanup the timer when component unmounts or searchTerm changes
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
+    };
+  }, [searchTerm]);
 
   // Fetch data with pagination
   const {
@@ -53,18 +78,18 @@ export function useDataFetching(
     refetch,
     isFetching
   } = useQuery({
-    queryKey: [...queryKey, pageIndex, pageSize, searchTerm],
+    queryKey: [...queryKey, pageIndex, pageSize, debouncedSearchTerm],
     queryFn: async () => {
       try {
         console.log(`Fetching data from ${tableName} with range: ${start}-${end}`);
         
         // If search term is provided and not empty, use the RPC search function
-        if (searchTerm && searchTerm.length > 2) {
+        if (debouncedSearchTerm && debouncedSearchTerm.length > 2) {
           setIsSearching(true);
           const { data: searchData, error: searchError } = await supabase
             .rpc('search_text_in_table', {
               p_table_name: tableName,
-              p_search_text: searchTerm
+              p_search_text: debouncedSearchTerm
             });
           
           if (searchError) {
@@ -87,12 +112,6 @@ export function useDataFetching(
         
         setIsSearching(false);
         let query = supabase.from(tableName).select('*', { count: 'exact' });
-        
-        // Add search filter if provided but not using RPC search
-        if (searchTerm) {
-          // This is a simple example - you might need to adjust based on your search fields
-          query = query.or(`name.ilike.%${searchTerm}%,church.ilike.%${searchTerm}%`);
-        }
         
         // Add pagination
         const { data, error, count } = await query.range(start, end);
@@ -131,15 +150,12 @@ export function useDataFetching(
       if (totalCount > nextPageStart) {
         // Prefetch next page
         queryClient.prefetchQuery({
-          queryKey: [...queryKey, nextPageIndex, pageSize, searchTerm],
+          queryKey: [...queryKey, nextPageIndex, pageSize, debouncedSearchTerm],
           queryFn: async () => {
             try {
               let query = supabase.from(tableName).select('*');
               
-              if (searchTerm) {
-                query = query.or(`name.ilike.%${searchTerm}%,church.ilike.%${searchTerm}%`);
-              }
-              
+              // Add pagination
               const { data, error } = await query.range(nextPageStart, nextPageEnd);
               
               if (error) throw new Error(error.message);
@@ -153,7 +169,7 @@ export function useDataFetching(
         });
       }
     }
-  }, [pageIndex, pageSize, data, isLoading, isFetching, queryClient, queryKey, tableName, searchTerm, totalCount, isSearching]);
+  }, [pageIndex, pageSize, data, isLoading, isFetching, queryClient, queryKey, tableName, debouncedSearchTerm, totalCount, isSearching]);
 
   // Calculate total page count
   const pageCount = Math.ceil(totalCount / pageSize);
