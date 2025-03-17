@@ -276,7 +276,7 @@ const DataPage = () => {
   };
   return <div className="h-full w-full flex flex-col">
       <Tabs defaultValue="active" className="w-full h-full" onValueChange={handleTabChange}>
-        <div className="px-6 py-2">
+        <div className="px-4 mt-4 py-0">
           <TabsList className="mt-4 mb-0 my-0">
             <TabsTrigger value="active" className="flex items-center gap-2">
               <CheckCircle size={16} />
