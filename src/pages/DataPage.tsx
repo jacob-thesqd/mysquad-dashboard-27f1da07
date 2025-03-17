@@ -9,9 +9,7 @@ import { ProjectData, HIDDEN_COLUMNS, DATE_COLUMNS, isArrayColumn, isDateColumn,
 import { useDataFetching, PaginationOptions } from "@/hooks/useDataFetching";
 import { toast } from "sonner";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-
 const DEFAULT_PAGE_SIZE = 1000;
-
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -33,7 +31,6 @@ const DataPage = () => {
     pageSize,
     searchTerm
   };
-
   const {
     data: activeProjects = [],
     isLoading: isActiveLoading,
@@ -44,7 +41,6 @@ const DataPage = () => {
   } = useDataFetching(["activeProjects"], "active_projects_mv", {
     enabled: activeTab === "active"
   }, activeTab === "active" ? paginationOptions : undefined);
-
   const {
     data: masterProjects = [],
     isLoading: isMasterLoading,
@@ -55,25 +51,20 @@ const DataPage = () => {
   } = useDataFetching(["masterProjects"], "master_project_view_mv", {
     enabled: activeTab === "master"
   }, activeTab === "master" ? paginationOptions : undefined);
-
   const currentProjects = useMemo(() => {
     return activeTab === "active" ? activeProjects : masterProjects;
   }, [activeTab, activeProjects, masterProjects]);
-
   const isLoading = activeTab === "active" ? isActiveLoading : isMasterLoading;
   const isFetching = activeTab === "active" ? isActiveFetching : isMasterFetching;
   const error = activeTab === "active" ? activeError : masterError;
   const pagination = activeTab === "active" ? activePagination : masterPagination;
-
   const columns = useMemo(() => {
     if (currentProjects.length === 0) return [];
     return Object.keys(currentProjects[0]).filter(column => !HIDDEN_COLUMNS.includes(column));
   }, [currentProjects]);
-
   const numberColumns = useMemo(() => columns.filter(column => currentProjects.length > 0 && isNumber(currentProjects[0][column]) && !isArrayColumn(currentProjects, column) && column !== 'account'), [columns, currentProjects]);
   const dateColumns = useMemo(() => columns.filter(column => currentProjects.length > 0 && isDateColumn(column)), [columns, currentProjects.length]);
   const arrayColumns = useMemo(() => columns.filter(column => currentProjects.length > 0 && isArrayColumn(currentProjects, column)), [columns, currentProjects]);
-
   React.useEffect(() => {
     if (currentProjects.length > 0) {
       const initialRanges: Record<string, {
@@ -87,10 +78,8 @@ const DataPage = () => {
       setNumberRangeFilters(initialRanges);
     }
   }, [currentProjects.length > 0, numberColumns.join(',')]);
-
   const filteredProjects = useMemo(() => filterProjects(currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters), [currentProjects, searchTerm, selectedFilters, numberRangeFilters, dateFilters]);
   const sortedProjects = useMemo(() => sortProjects(filteredProjects, sortColumn, sortDirection), [filteredProjects, sortColumn, sortDirection]);
-
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -99,7 +88,6 @@ const DataPage = () => {
       setSortDirection("asc");
     }
   };
-
   const handleFilterSelectionChange = (column: string, value: string, checked: boolean) => {
     setSelectedFilters(prev => {
       const current = prev[column] || [];
@@ -116,7 +104,6 @@ const DataPage = () => {
       }
     });
   };
-
   const clearColumnFilters = (column: string) => {
     setSelectedFilters(prev => {
       const newFilters = {
@@ -126,11 +113,9 @@ const DataPage = () => {
       return newFilters;
     });
   };
-
   const getUniqueValues = (column: string): string[] => {
     return getUniqueColumnValues(currentProjects, column);
   };
-
   const handleRangeChange = (column: string, values: number[]) => {
     setNumberRangeFilters(prev => ({
       ...prev,
@@ -140,14 +125,12 @@ const DataPage = () => {
       }
     }));
   };
-
   const applyDateFilter = (column: string, filter: DateFilter) => {
     setDateFilters(prev => ({
       ...prev,
       [column]: filter
     }));
   };
-
   const clearDateFilter = (column: string) => {
     setDateFilters(prev => {
       const newFilters = {
@@ -157,7 +140,6 @@ const DataPage = () => {
       return newFilters;
     });
   };
-
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     setSortColumn(null);
@@ -168,13 +150,11 @@ const DataPage = () => {
     setDateFilterPopoverOpen({});
     setPageIndex(0);
   };
-
   const handlePageChange = (newPageIndex: number) => {
     if (newPageIndex >= 0 && newPageIndex < pagination.pageCount) {
       setPageIndex(newPageIndex);
     }
   };
-
   const handleLoadAll = async () => {
     try {
       setIsLoadingAll(true);
@@ -193,7 +173,6 @@ const DataPage = () => {
       setIsLoadingAll(false);
     }
   };
-
   const handleExportCSV = () => {
     if (currentProjects.length === 0) {
       toast.error("No data to export");
@@ -224,66 +203,39 @@ const DataPage = () => {
     document.body.removeChild(link);
     toast.success("Data exported successfully!");
   };
-
   const renderTableControls = (isActiveTab: boolean) => {
     const currentPagination = isActiveTab ? activePagination : masterPagination;
     const currentIsFetching = isActiveTab ? isActiveFetching : isMasterFetching;
     const currentIsLoading = isActiveTab ? isActiveLoading : isMasterLoading;
     const currentProjects = isActiveTab ? activeProjects : masterProjects;
-    
     const startRow = pageIndex * pageSize + 1;
     const endRow = Math.min((pageIndex + 1) * pageSize, currentPagination?.totalCount || 0);
     const totalRows = currentPagination?.totalCount || 0;
-
-    return (
-      <div className="flex items-center justify-between mb-4">
+    return <div className="flex items-center justify-between mb-4">
         <div className="relative w-80">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search..." 
-            className="pl-8" 
-            value={searchTerm} 
-            onChange={e => setSearchTerm(e.target.value)} 
-          />
+          <Input placeholder="Search..." className="pl-8" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 mr-4">
             <span className="text-sm font-small text-muted-foreground">
-              {sortedProjects.length > 0 ? (
-                <>Showing rows {startRow} to {endRow} of {totalRows}</>
-              ) : (
-                <>No projects found</>
-              )}
+              {sortedProjects.length > 0 ? <>Showing rows {startRow} to {endRow} of {totalRows}</> : <>No projects found</>}
             </span>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleLoadAll} 
-            disabled={isLoadingAll} 
-            className="mr-2"
-          >
+          <Button variant="outline" size="sm" onClick={handleLoadAll} disabled={isLoadingAll} className="mr-2">
             {isLoadingAll ? "Loading..." : "Load All"}
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleExportCSV} 
-            disabled={currentIsLoading || currentProjects.length === 0}
-          >
+          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={currentIsLoading || currentProjects.length === 0}>
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
         </div>
-      </div>
-    );
+      </div>;
   };
-
   const renderPagination = () => {
     if (pagination?.pageCount <= 1 || sortedProjects.length === 0) {
       return null;
     }
-
     return <div className="mt-4 flex items-center justify-between">
         <div className="text-xs text-muted-foreground mb-4 ml-2">
           Page {pageIndex + 1} of {pagination?.pageCount || 1}
@@ -322,10 +274,9 @@ const DataPage = () => {
         </Pagination>
       </div>;
   };
-
   return <div className="h-full w-full flex flex-col">
       <Tabs defaultValue="active" className="w-full h-full" onValueChange={handleTabChange}>
-        <div className="border-b px-6 py-2">
+        <div className="px-6 py-2">
           <TabsList>
             <TabsTrigger value="active" className="flex items-center gap-2">
               <CheckCircle size={16} />
@@ -342,28 +293,7 @@ const DataPage = () => {
           <div className="p-4 h-full flex flex-col">
             {renderTableControls(true)}
             
-            <DataTable 
-              data={sortedProjects} 
-              columns={columns} 
-              dateColumns={dateColumns} 
-              arrayColumns={arrayColumns} 
-              isLoading={isLoading || isFetching} 
-              error={error} 
-              sortColumn={sortColumn} 
-              sortDirection={sortDirection} 
-              selectedFilters={selectedFilters} 
-              dateFilters={dateFilters} 
-              filterPopoverOpen={filterPopoverOpen} 
-              dateFilterPopoverOpen={dateFilterPopoverOpen} 
-              handleSort={handleSort} 
-              getUniqueColumnValues={getUniqueValues} 
-              handleFilterSelectionChange={handleFilterSelectionChange} 
-              clearColumnFilters={clearColumnFilters} 
-              setFilterPopoverOpen={setFilterPopoverOpen} 
-              setDateFilterPopoverOpen={setDateFilterPopoverOpen} 
-              applyDateFilter={applyDateFilter} 
-              clearDateFilter={clearDateFilter} 
-            />
+            <DataTable data={sortedProjects} columns={columns} dateColumns={dateColumns} arrayColumns={arrayColumns} isLoading={isLoading || isFetching} error={error} sortColumn={sortColumn} sortDirection={sortDirection} selectedFilters={selectedFilters} dateFilters={dateFilters} filterPopoverOpen={filterPopoverOpen} dateFilterPopoverOpen={dateFilterPopoverOpen} handleSort={handleSort} getUniqueColumnValues={getUniqueValues} handleFilterSelectionChange={handleFilterSelectionChange} clearColumnFilters={clearColumnFilters} setFilterPopoverOpen={setFilterPopoverOpen} setDateFilterPopoverOpen={setDateFilterPopoverOpen} applyDateFilter={applyDateFilter} clearDateFilter={clearDateFilter} />
 
             {renderPagination()}
           </div>
@@ -373,28 +303,7 @@ const DataPage = () => {
           <div className="p-4 h-full flex flex-col">
             {renderTableControls(false)}
             
-            <DataTable 
-              data={sortedProjects} 
-              columns={columns} 
-              dateColumns={dateColumns} 
-              arrayColumns={arrayColumns} 
-              isLoading={isLoading || isFetching} 
-              error={error} 
-              sortColumn={sortColumn} 
-              sortDirection={sortDirection} 
-              selectedFilters={selectedFilters} 
-              dateFilters={dateFilters} 
-              filterPopoverOpen={filterPopoverOpen} 
-              dateFilterPopoverOpen={dateFilterPopoverOpen} 
-              handleSort={handleSort} 
-              getUniqueColumnValues={getUniqueValues} 
-              handleFilterSelectionChange={handleFilterSelectionChange} 
-              clearColumnFilters={clearColumnFilters} 
-              setFilterPopoverOpen={setFilterPopoverOpen} 
-              setDateFilterPopoverOpen={setDateFilterPopoverOpen} 
-              applyDateFilter={applyDateFilter} 
-              clearDateFilter={clearDateFilter} 
-            />
+            <DataTable data={sortedProjects} columns={columns} dateColumns={dateColumns} arrayColumns={arrayColumns} isLoading={isLoading || isFetching} error={error} sortColumn={sortColumn} sortDirection={sortDirection} selectedFilters={selectedFilters} dateFilters={dateFilters} filterPopoverOpen={filterPopoverOpen} dateFilterPopoverOpen={dateFilterPopoverOpen} handleSort={handleSort} getUniqueColumnValues={getUniqueValues} handleFilterSelectionChange={handleFilterSelectionChange} clearColumnFilters={clearColumnFilters} setFilterPopoverOpen={setFilterPopoverOpen} setDateFilterPopoverOpen={setDateFilterPopoverOpen} applyDateFilter={applyDateFilter} clearDateFilter={clearDateFilter} />
 
             {renderPagination()}
           </div>
@@ -402,5 +311,4 @@ const DataPage = () => {
       </Tabs>
     </div>;
 };
-
 export default DataPage;
