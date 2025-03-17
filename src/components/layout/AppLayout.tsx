@@ -108,7 +108,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 active={location.pathname === "/turnaround"} 
                 onClick={() => handleNavigation("/turnaround")}
               >
-                Turnaround Time Calculator
+                Turnaround Times
               </SidebarItem>
               <SidebarItem 
                 icon={CalendarDays} 
