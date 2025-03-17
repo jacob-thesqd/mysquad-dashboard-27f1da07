@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { SidebarProvider } from "@/components/ui/collapsible-sidebar";
 import AppLayout from "@/components/layout/AppLayout";
@@ -12,6 +12,7 @@ import DataPage from "./pages/DataPage";
 import Dashboard from "./pages/Dashboard";
 import Audits from "./pages/Audits";
 import TaskDeepDive from "./pages/TaskDeepDive";
+import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -24,15 +25,13 @@ const App = () => (
         <SidebarProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="/login" element={<Login />} />
               <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
               <Route path="/data" element={<AppLayout><DataPage /></AppLayout>} />
               <Route path="/audits" element={<AppLayout><Audits /></AppLayout>} />
               <Route path="/deep-dive" element={<AppLayout><TaskDeepDive /></AppLayout>} />
-              <Route path="/documents" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Documents</h1><p>View and manage your documents</p></div></AppLayout>} />
-              <Route path="/team" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Team</h1><p>Manage your team members</p></div></AppLayout>} />
-              <Route path="/learning" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Learning</h1><p>Access learning resources</p></div></AppLayout>} />
-              <Route path="/resources" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Resources</h1><p>Browse available resources</p></div></AppLayout>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/turnaround" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Turnaround Times</h1><p>Track task completion times and trends</p></div></AppLayout>} />
+              <Route path="/scheduling" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Scheduling</h1><p>Manage resource scheduling</p></div></AppLayout>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

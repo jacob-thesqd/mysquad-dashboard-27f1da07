@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Define interfaces for the API responses
 export interface DailyMetric {
-  count: string;
+  current_count: string;
+  ytd_daily_avg: string;
   type: string;
 }
 
@@ -16,11 +17,17 @@ export interface TimeSeriesData {
 
 export interface ProjectStats {
   tasksCreatedToday: number;
+  tasksCreatedAvg: number;
   designTasksCreatedToday: number;
+  designTasksCreatedAvg: number;
   tasksAutoAssignedToday: number;
+  tasksAutoAssignedAvg: number;
   tasksInQueue: number;
+  tasksInQueueAvg: number;
   queuedToday: number;
+  queuedTodayAvg: number;
   medianAASeconds: number;
+  medianAASecondsAvg: number;
   timeSeriesData: TimeSeriesData[];
 }
 
@@ -49,12 +56,18 @@ export const useProjectStats = () => {
       
       // Parse the metrics data into the ProjectStats format
       const stats: ProjectStats = {
-        tasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'tasks_created_today')?.count || 0),
-        designTasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'design_video_tasks_created_today')?.count || 0),
-        tasksAutoAssignedToday: Number(typedMetricsData.find(m => m.type === 'aa_today')?.count || 0),
-        tasksInQueue: Number(typedMetricsData.find(m => m.type === 'total_queued')?.count || 0),
-        queuedToday: Number(typedMetricsData.find(m => m.type === 'queued_today')?.count || 0),
-        medianAASeconds: Number(typedMetricsData.find(m => m.type === 'median_aa_seconds')?.count || 0),
+        tasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'tasks_created_today')?.current_count || 0),
+        tasksCreatedAvg: Number(typedMetricsData.find(m => m.type === 'tasks_created_today')?.ytd_daily_avg || 0),
+        designTasksCreatedToday: Number(typedMetricsData.find(m => m.type === 'design_video_tasks_created_today')?.current_count || 0),
+        designTasksCreatedAvg: Number(typedMetricsData.find(m => m.type === 'design_video_tasks_created_today')?.ytd_daily_avg || 0),
+        tasksAutoAssignedToday: Number(typedMetricsData.find(m => m.type === 'aa_today')?.current_count || 0),
+        tasksAutoAssignedAvg: Number(typedMetricsData.find(m => m.type === 'aa_today')?.ytd_daily_avg || 0),
+        tasksInQueue: Number(typedMetricsData.find(m => m.type === 'total_queued')?.current_count || 0),
+        tasksInQueueAvg: Number(typedMetricsData.find(m => m.type === 'total_queued')?.ytd_daily_avg || 0),
+        queuedToday: Number(typedMetricsData.find(m => m.type === 'queued_today')?.current_count || 0),
+        queuedTodayAvg: Number(typedMetricsData.find(m => m.type === 'queued_today')?.ytd_daily_avg || 0),
+        medianAASeconds: Number(typedMetricsData.find(m => m.type === 'median_aa_seconds')?.current_count || 0),
+        medianAASecondsAvg: Number(typedMetricsData.find(m => m.type === 'median_aa_seconds')?.ytd_daily_avg || 0),
         timeSeriesData: trendsData as TimeSeriesData[],
       };
       

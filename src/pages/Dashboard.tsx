@@ -27,11 +27,17 @@ const Dashboard = () => {
   // Handle the case when stats is undefined during initial load
   const safeStats = stats || {
     tasksCreatedToday: 0,
+    tasksCreatedAvg: 0,
     designTasksCreatedToday: 0,
+    designTasksCreatedAvg: 0,
     tasksAutoAssignedToday: 0,
+    tasksAutoAssignedAvg: 0,
     tasksInQueue: 0,
+    tasksInQueueAvg: 0,
     queuedToday: 0,
+    queuedTodayAvg: 0,
     medianAASeconds: 0,
+    medianAASecondsAvg: 0,
     timeSeriesData: []
   };
 
@@ -46,6 +52,8 @@ const Dashboard = () => {
           icon={<CalendarPlus size={24} />}
           filterParam={`date_created:${new Date().toISOString().split('T')[0]}`}
           isLoading={isLoading}
+          ytdAverage={safeStats.tasksCreatedAvg}
+          compareDirection="higher-is-better"
         />
         
         <StatsCard 
@@ -54,6 +62,8 @@ const Dashboard = () => {
           icon={<Layers size={24} />}
           filterParam={`date_created:${new Date().toISOString().split('T')[0]} space_name:Blue,Red`}
           isLoading={isLoading}
+          ytdAverage={safeStats.designTasksCreatedAvg}
+          compareDirection="higher-is-better"
         />
         
         <StatsCard 
@@ -62,6 +72,8 @@ const Dashboard = () => {
           icon={<CheckSquare size={24} />}
           filterParam={`date_auto_assigned:${new Date().toISOString().split('T')[0]}`}
           isLoading={isLoading}
+          ytdAverage={safeStats.tasksAutoAssignedAvg}
+          compareDirection="higher-is-better"
         />
         
         <StatsCard 
@@ -70,6 +82,8 @@ const Dashboard = () => {
           icon={<Clock size={24} />}
           filterParam="auto_assign_status:queued"
           isLoading={isLoading}
+          ytdAverage={safeStats.tasksInQueueAvg}
+          compareDirection="lower-is-better"
         />
 
         <StatsCard 
@@ -78,6 +92,8 @@ const Dashboard = () => {
           icon={<AlarmClock size={24} />}
           filterParam={`date_queued:${new Date().toISOString().split('T')[0]}`}
           isLoading={isLoading}
+          ytdAverage={safeStats.queuedTodayAvg}
+          compareDirection="lower-is-better"
         />
 
         <StatsCard 
@@ -86,6 +102,8 @@ const Dashboard = () => {
           icon={<Timer size={24} />}
           valueFormatter={formatSeconds}
           isLoading={isLoading}
+          ytdAverage={safeStats.medianAASecondsAvg}
+          compareDirection="lower-is-better"
         />
       </div>
       

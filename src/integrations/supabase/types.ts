@@ -4455,6 +4455,7 @@ export type Database = {
           row_id: string
           row_updated: string | null
           task_id: string
+          updated_by: number | null
         }
         Insert: {
           comment_sent?: string | null
@@ -4464,6 +4465,7 @@ export type Database = {
           row_id?: string
           row_updated?: string | null
           task_id: string
+          updated_by?: number | null
         }
         Update: {
           comment_sent?: string | null
@@ -4473,6 +4475,7 @@ export type Database = {
           row_id?: string
           row_updated?: string | null
           task_id?: string
+          updated_by?: number | null
         }
         Relationships: []
       }

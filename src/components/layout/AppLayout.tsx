@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter, useSidebar } from "@/components/ui/collapsible-sidebar";
+import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter } from "@/components/ui/collapsible-sidebar";
 import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, Waves, Hourglass, CalendarDays } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
@@ -34,6 +34,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   const handleNavigation = (path: string) => {
     navigate(path);
+  };
+
+  const handleLogout = () => {
+    // For now, just navigate to login page
+    // Later this will be replaced with actual logout functionality
+    navigate("/login");
   };
 
   return (
@@ -146,7 +152,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                           <SunMoon size={16} />
                           <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
                         </Button>
-                        <Button variant="ghost" className="flex items-center justify-start gap-2 w-full text-destructive">
+                        <Button variant="ghost" className="flex items-center justify-start gap-2 w-full text-destructive" onClick={handleLogout}>
                           <LogOut size={16} />
                           <span>Log out</span>
                         </Button>
@@ -155,7 +161,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   </Popover>
                 </>
               ) : (
-                <div className="mx-auto h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+                <div className="mx-auto h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center cursor-pointer" onClick={handleLogout}>
                   <span className="text-xs font-medium">JD</span>
                 </div>
               )}

@@ -12,6 +12,8 @@ interface StatsCardProps {
   changePercent?: number;
   isLoading?: boolean;
   valueFormatter?: (value: number) => string;
+  ytdAverage?: number;
+  compareDirection?: 'higher-is-better' | 'lower-is-better';
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({
@@ -22,7 +24,9 @@ const StatsCard: React.FC<StatsCardProps> = ({
   filterParam,
   changePercent,
   isLoading = false,
-  valueFormatter
+  valueFormatter,
+  ytdAverage,
+  compareDirection = 'higher-is-better'
 }) => {
   const navigate = useNavigate();
 
@@ -33,6 +37,13 @@ const StatsCard: React.FC<StatsCardProps> = ({
   };
 
   const formattedValue = valueFormatter ? valueFormatter(value) : value.toLocaleString();
+  const formattedYtdAvg = ytdAverage !== undefined ? (valueFormatter ? valueFormatter(ytdAverage) : ytdAverage.toLocaleString()) : undefined;
+
+  // Determine if current performance is better than average
+  const isBetter = ytdAverage !== undefined && (
+    (compareDirection === 'higher-is-better' && value > ytdAverage) ||
+    (compareDirection === 'lower-is-better' && value < ytdAverage)
+  );
 
   return (
     <Card 
@@ -46,10 +57,17 @@ const StatsCard: React.FC<StatsCardProps> = ({
             {isLoading ? (
               <div className="h-8 w-24 animate-pulse bg-gray-200 dark:bg-gray-700 rounded mt-1"></div>
             ) : (
-              <h3 className="text-2xl font-bold mt-1">{formattedValue}</h3>
+              <h3 className={`text-2xl font-bold mt-1 ${isBetter ? 'text-green-500' : ytdAverage !== undefined ? 'text-red-500' : ''}`}>
+                {formattedValue}
+              </h3>
             )}
             {description && (
               <p className="text-xs text-muted-foreground mt-1">{description}</p>
+            )}
+            {ytdAverage !== undefined && (
+              <p className="text-xs text-muted-foreground mt-1">
+                YTD Daily Avg: {formattedYtdAvg}
+              </p>
             )}
             {changePercent !== undefined && (
               <div className={`text-xs flex items-center mt-1 ${changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
