@@ -41,7 +41,6 @@ const Dashboard = () => {
           title="Design/Video Tasks Today" 
           value={stats.designTasksCreatedToday} 
           icon={<Layers size={24} />}
-          description="From Red & Blue Accounts"
           filterParam={`date_created:${new Date().toISOString().split('T')[0]} space_name:Blue,Red`}
           isLoading={isLoading}
         />
@@ -74,7 +73,6 @@ const Dashboard = () => {
           title="Median Auto-Assign Time" 
           value={stats.medianAASeconds} 
           icon={<Timer size={24} />}
-          description="From queue to assigned"
           valueFormatter={formatSeconds}
           isLoading={isLoading}
         />
