@@ -36,7 +36,7 @@ const App = () => (
         </SidebarProvider>
       </TooltipProvider>
     </ThemeProvider>
-    <Analytics />
+    <Analytics debug={true} />
   </QueryClientProvider>
 );
 

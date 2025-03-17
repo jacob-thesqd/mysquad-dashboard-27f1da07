@@ -6,6 +6,6 @@ import { Analytics } from '@vercel/analytics/react'
 createRoot(document.getElementById("root")!).render(
   <>
     <App />
-    <Analytics />
+    <Analytics debug={true} />
   </>
 );
