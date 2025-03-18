@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { TaskAudit, TaskDetails } from "@/types/audit";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CheckCircle, AlertCircle, Link as LinkIcon, FileText, Tag, Calendar, User } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 interface AuditDetailProps {
   audit: TaskAudit | null;
   onMarkComplete: (rowId: string) => void;
@@ -16,7 +14,6 @@ interface AuditDetailProps {
   isCompleting: boolean;
   onFetchTaskDetails: (taskId: string) => Promise<TaskDetails>;
 }
-
 export function AuditDetail({
   audit,
   onMarkComplete,
@@ -27,7 +24,6 @@ export function AuditDetail({
   const [taskDetails, setTaskDetails] = useState<TaskDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [showCompleteButton, setShowCompleteButton] = useState(false);
-
   useEffect(() => {
     if (audit) {
       setIsLoadingDetails(true);
@@ -46,28 +42,24 @@ export function AuditDetail({
   // Function to highlight keywords in markdown content
   const highlightKeywords = (content: string, keywords: string | undefined) => {
     if (!keywords || !content) return content;
-  
+
     // Split keywords if there are multiple (comma-separated)
     const keywordArray = keywords.split(',').map(k => k.trim().toLowerCase());
-  
+
     // Create a regex pattern for all keywords, case insensitive
     const regexPattern = keywordArray.map(keyword => keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
     const regex = new RegExp(`(${regexPattern})`, 'gi');
-  
+
     // Replace each keyword with highlighted version, directly in markdown
     let highlightedContent = content.replace(regex, '===$1===');
-    
+
     // Ensure URLs are properly displayed
-    highlightedContent = highlightedContent.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi, 
-      '[link]($1)');
-    
+    highlightedContent = highlightedContent.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi, '[link]($1)');
     return highlightedContent;
   };
-
   const handleMarkComplete = (rowId: string) => {
     onMarkComplete(rowId);
   };
-
   if (isLoading) {
     return <div className="space-y-4">
         <Skeleton className="w-3/4 h-8" />
@@ -75,7 +67,6 @@ export function AuditDetail({
         <Skeleton className="w-full h-32" />
       </div>;
   }
-
   if (!audit) {
     return <div className="flex flex-col items-center justify-center h-full">
         <AlertCircle className="w-8 h-8 text-muted-foreground" />
@@ -85,28 +76,18 @@ export function AuditDetail({
   }
 
   // Process description text to highlight keywords if this is a keyword type audit
-  const processedDescription = audit.reason === 'keywords_found_desc' && taskDetails?.description
-    ? highlightKeywords(taskDetails.description, audit.data.keywordsFoundDesc)
-    : taskDetails?.description;
-
-  return (
-    <ScrollArea className="h-[calc(100vh-12rem)]">
+  const processedDescription = audit.reason === 'keywords_found_desc' && taskDetails?.description ? highlightKeywords(taskDetails.description, audit.data.keywordsFoundDesc) : taskDetails?.description;
+  return <ScrollArea className="h-[calc(100vh-12rem)]">
       <div className="space-y-6 pr-4">
-        <div 
-          className="relative" 
-          onMouseEnter={() => setShowCompleteButton(true)} 
-          onMouseLeave={() => setShowCompleteButton(false)}
-        >
+        <div className="relative" onMouseEnter={() => setShowCompleteButton(true)} onMouseLeave={() => setShowCompleteButton(false)}>
           <Card className="pt-2">
-            <CardHeader className="pb-2">
-              <h4 className="text-sm font-semibold">Audit Details</h4>
+            <CardHeader className="py-0">
+              
               <div className="flex items-center mt-1">
-                {audit.row_updated ? (
-                  <div className="flex items-center text-green-600">
+                {audit.row_updated ? <div className="flex items-center text-green-600">
                     <CheckCircle className="w-4 h-4 mr-1" />
                     <span className="text-sm">Completed</span>
-                  </div>
-                ) : null}
+                  </div> : null}
               </div>
             </CardHeader>
             <CardContent className="space-y-4 mt-2">
@@ -136,33 +117,23 @@ export function AuditDetail({
             </CardContent>
           </Card>
 
-          {!audit.row_updated && showCompleteButton && (
-            <Button 
-              onClick={() => handleMarkComplete(audit.row_id)} 
-              disabled={!!audit.row_updated || isCompleting} 
-              className="bg-green-500 hover:bg-green-600 text-white absolute top-2 right-2 z-10"
-              size="sm"
-            >
+          {!audit.row_updated && showCompleteButton && <Button onClick={() => handleMarkComplete(audit.row_id)} disabled={!!audit.row_updated || isCompleting} className="bg-green-500 hover:bg-green-600 text-white absolute top-2 right-2 z-10" size="sm">
               {isCompleting ? 'Marking...' : 'Mark Complete'}
-            </Button>
-          )}
+            </Button>}
         </div>
 
-        {isLoadingDetails ? (
-          <div className="space-y-4 mt-6">
+        {isLoadingDetails ? <div className="space-y-4 mt-6">
             <Skeleton className="w-full h-8" />
             <Skeleton className="w-full h-64" />
             <Skeleton className="w-full h-32" />
-          </div>
-        ) : taskDetails ? (
-          <Card>
+          </div> : taskDetails ? <Card>
             <CardHeader className="border-b">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg">{taskDetails.name}</CardTitle>
                 {taskDetails.status && <div className="px-3 py-1 text-xs rounded-full" style={{
-                  backgroundColor: `${taskDetails.status.color}20`,
-                  color: taskDetails.status.color
-                }}>
+              backgroundColor: `${taskDetails.status.color}20`,
+              color: taskDetails.status.color
+            }}>
                   {taskDetails.status.status}
                 </div>}
               </div>
@@ -175,15 +146,13 @@ export function AuditDetail({
                   Assignees
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {taskDetails.assignees.map(assignee => 
-                    <div key={assignee.id} className="flex items-center space-x-2 bg-muted p-2 rounded-full">
+                  {taskDetails.assignees.map(assignee => <div key={assignee.id} className="flex items-center space-x-2 bg-muted p-2 rounded-full">
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={assignee.profilePicture} alt={assignee.username} />
                         <AvatarFallback>{assignee.initials}</AvatarFallback>
                       </Avatar>
                       <span className="text-sm">{assignee.username}</span>
-                    </div>
-                  )}
+                    </div>)}
                 </div>
               </div>}
 
@@ -232,10 +201,11 @@ export function AuditDetail({
                   </style>
                   <div className="markdown-content">
                     <ReactMarkdown components={{
-                      a: ({ node, ...props }) => (
-                        <a target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" {...props} />
-                      )
-                    }}>
+                  a: ({
+                    node,
+                    ...props
+                  }) => <a target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" {...props} />
+                }}>
                       {processedDescription}
                     </ReactMarkdown>
                   </div>
@@ -249,9 +219,9 @@ export function AuditDetail({
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {taskDetails.tags.map((tag, index) => <span key={index} className="px-2 py-1 text-xs rounded-full" style={{
-                    backgroundColor: `${tag.tag_bg}20`,
-                    color: tag.tag_bg
-                  }}>
+                backgroundColor: `${tag.tag_bg}20`,
+                color: tag.tag_bg
+              }}>
                     {tag.name}
                   </span>)}
                 </div>
@@ -302,40 +272,18 @@ export function AuditDetail({
               {taskDetails.custom_fields && taskDetails.custom_fields.length > 0 && <div className="space-y-4">
                 <h4 className="text-sm font-semibold">Custom Fields</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {taskDetails.custom_fields
-                    .filter(field => 
-                      field.value !== null && 
-                      field.value !== undefined && 
-                      field.name !== "Go Live Date" &&
-                      !field.name.startsWith("⚪") && 
-                      !field.name.startsWith("🟡") && 
-                      !field.name.startsWith("🔵") && 
-                      !field.name.startsWith("🟣") && 
-                      !field.name.startsWith("🟢") && 
-                      !field.name.startsWith("🔴") && 
-                      !field.name.startsWith("⚫"))
-                    .map((field, index) => (
-                      <div key={index} className="bg-muted/30 p-3 rounded-md overflow-hidden">
+                  {taskDetails.custom_fields.filter(field => field.value !== null && field.value !== undefined && field.name !== "Go Live Date" && !field.name.startsWith("⚪") && !field.name.startsWith("🟡") && !field.name.startsWith("🔵") && !field.name.startsWith("🟣") && !field.name.startsWith("🟢") && !field.name.startsWith("🔴") && !field.name.startsWith("⚫")).map((field, index) => <div key={index} className="bg-muted/30 p-3 rounded-md overflow-hidden">
                         <h5 className="text-xs font-medium mb-1">{field.name}</h5>
                         <p className="text-sm truncate max-w-full">
-                          {typeof field.value === 'string' && field.value.startsWith('http') 
-                            ? <a href={field.value} target="_blank" rel="noopener noreferrer" 
-                                className="text-blue-600 hover:underline truncate inline-block max-w-full overflow-hidden text-ellipsis">
+                          {typeof field.value === 'string' && field.value.startsWith('http') ? <a href={field.value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate inline-block max-w-full overflow-hidden text-ellipsis">
                                 {field.value}
-                              </a>
-                            : typeof field.value === 'object' && Array.isArray(field.value)
-                              ? field.value.join(', ')
-                              : String(field.value)}
+                              </a> : typeof field.value === 'object' && Array.isArray(field.value) ? field.value.join(', ') : String(field.value)}
                         </p>
-                      </div>
-                    ))
-                  }
+                      </div>)}
                 </div>
               </div>}
             </CardContent>
-          </Card>
-        ) : null}
+          </Card> : null}
       </div>
-    </ScrollArea>
-  );
+    </ScrollArea>;
 }
