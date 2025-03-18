@@ -132,8 +132,8 @@ export function AuditDetail({
           >
             {isCompleting ? 'Marking...' : (
               <>
-                Mark Complete 
-                <CircleCheck className="w-4 h-4 mr-1" />
+                Mark Complete
+                <CircleCheck className="w-4 h-4 ml-1" />
               </>
             )}
           </Button>
