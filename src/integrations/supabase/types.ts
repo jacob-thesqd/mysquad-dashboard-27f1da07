@@ -5470,6 +5470,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_aa_decision_log: {
+        Args: {
+          p_identifier: string
+        }
+        Returns: {
+          task_id: string
+          account: number
+          type: string
+          aa_designer_chosen: string
+          aa_designer_chosen_data: Json
+          aa_all_choices: Json[]
+          aa_markdown_narrative: string
+          metadata: Json
+          created_at: string
+        }[]
+      }
       get_account_capacity: {
         Args: {
           input_account_number: number
