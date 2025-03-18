@@ -54,7 +54,7 @@ export function AuditDetail({
     keywordArray.forEach(keyword => {
       if (keyword) {
         const regex = new RegExp(`(${keyword})`, 'gi');
-        highlightedContent = highlightedContent.replace(regex, '**$1**');
+        highlightedContent = highlightedContent.replace(regex, '==**$1**==');
       }
     });
     
