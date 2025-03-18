@@ -101,9 +101,9 @@ const TaskDeepDive = () => {
   const getItemTitle = (item: DecisionLogItem) => {
     switch (item.type) {
       case "activated":
-        return `Task activated: Status changed from ${item.metadata?.status_before || 'Unknown'} to ${item.metadata?.status_after || 'Unknown'}`;
+        return `Task activated: Status changed from ${item.metadata?.status_before.toUpperCase() || 'Unknown'} to ${item.metadata?.status_after.toUpperCase() || 'Unknown'}`;
       case "deactivated":
-        return `Task deactivated: Status changed from ${item.metadata?.status_before || 'Unknown'} to ${item.metadata?.status_after || 'Unknown'}`;
+        return `Task deactivated: Status changed from ${item.metadata?.status_before.toUpperCase() || 'Unknown'} to ${item.metadata?.status_after.toUpperCase() || 'Unknown'}`;
       case "assign":
         return `Task assigned to ${item.aa_designer_chosen}`;
       case "queued_assign":
