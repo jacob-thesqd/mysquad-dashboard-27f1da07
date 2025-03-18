@@ -164,7 +164,7 @@ const TaskDeepDive = () => {
                 )}
               </div>
               
-              <ScrollArea className="h-[calc(100%-3rem)] pr-4">
+              <ScrollArea className="h-[calc(100%-12rem)] pr-4">
                 <div className="relative ml-6 border-l-2 border-border pl-8 pb-10">
                   {data.map((item, index) => (
                     <div key={index} className="mb-8 relative">
