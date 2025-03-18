@@ -101,9 +101,9 @@ const TaskDeepDive = () => {
   const getItemTitle = (item: DecisionLogItem) => {
     switch (item.type) {
       case "activated":
-        return `Task activated: Status changed from ${item.metadata?.status_before.toUpperCase() || 'Unknown'} to ${item.metadata?.status_after.toUpperCase() || 'Unknown'}`;
+        return `Task activated: Status changed`;
       case "deactivated":
-        return `Task deactivated: Status changed from ${item.metadata?.status_before.toUpperCase() || 'Unknown'} to ${item.metadata?.status_after.toUpperCase() || 'Unknown'}`;
+        return `Task deactivated: Status changed`;
       case "assign":
         return `Task assigned to ${item.aa_designer_chosen}`;
       case "queued_assign":
@@ -281,9 +281,9 @@ const TaskDeepDive = () => {
                               <div className="mt-2 flex items-center">
                                 <div className="font-medium text-sm mr-2">Status Change:</div>
                                 <div className="flex items-center">
-                                  <span className="text-sm px-2 py-1 bg-muted rounded-md">{item.metadata.status_before}</span>
+                                  <span className="text-sm px-2 py-1 bg-muted rounded-md">{item.metadata.status_before.toUpperCase()}</span>
                                   <ArrowRight className="mx-2 h-4 w-4 text-muted-foreground" />
-                                  <span className="text-sm px-2 py-1 bg-muted rounded-md">{item.metadata.status_after}</span>
+                                  <span className="text-sm px-2 py-1 bg-muted rounded-md">{item.metadata.status_after.toUpperCase()}</span>
                                 </div>
                               </div>
                             )}
