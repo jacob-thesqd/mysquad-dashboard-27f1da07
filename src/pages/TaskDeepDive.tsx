@@ -93,6 +93,10 @@ const TaskDeepDive = () => {
         return <Clock className="text-yellow-500" />;
       case "trigger":
         return <Activity className="text-purple-500" />;
+      case "assignee_manual_update":
+        return <Users className="text-indigo-500" />;
+      case "queued":
+        return <Clock className="text-orange-500" />;
       default:
         return <Compass className="text-gray-500" />;
     }
@@ -110,6 +114,10 @@ const TaskDeepDive = () => {
         return "Task queued for assignment";
       case "trigger":
         return "Auto-assign process triggered";
+      case "assignee_manual_update":
+        return `Task manually assigned to ${item.metadata?.changed_to || "someone"}`;
+      case "queued":
+        return "Task queued";
       default:
         return `${item.type.charAt(0).toUpperCase() + item.type.slice(1)} event`;
     }
@@ -132,6 +140,14 @@ const TaskDeepDive = () => {
     } catch (e) {
       return "Invalid date";
     }
+  };
+
+  // Function to convert keys to sentence case
+  const toSentenceCase = (key: string): string => {
+    return key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   return (
@@ -254,7 +270,7 @@ const TaskDeepDive = () => {
                                     .filter(([key]) => !['task_ids', 'draft_date'].includes(key))
                                     .map(([key, value]) => (
                                       <div key={key} className="p-2 bg-muted rounded">
-                                        <span className="font-medium">{key.replace(/_/g, ' ')}:</span> {value?.toString()}
+                                        <span className="font-medium">{toSentenceCase(key)}:</span> {value?.toString()}
                                       </div>
                                     ))}
                                 </div>
@@ -269,9 +285,83 @@ const TaskDeepDive = () => {
                                     .filter(([key, value]) => value !== null && !['non_design_employee_data'].includes(key))
                                     .map(([key, value]) => (
                                       <div key={key} className="p-2 bg-muted rounded">
-                                        <span className="font-medium">{key.replace(/_/g, ' ')}:</span> {value?.toString()}
+                                        <span className="font-medium">{toSentenceCase(key)}:</span> {value?.toString()}
                                       </div>
                                     ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {item.type === "queued" && item.metadata && (
+                              <div className="mt-2">
+                                <h4 className="text-sm font-medium mb-1">Queue Details</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                  {Object.entries(item.metadata)
+                                    .filter(([key, value]) => value !== null && !['non_design_employee_data'].includes(key))
+                                    .map(([key, value]) => (
+                                      <div key={key} className="p-2 bg-muted rounded">
+                                        <span className="font-medium">{toSentenceCase(key)}:</span> {value?.toString()}
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {item.type === "queued_assign" && item.metadata && (
+                              <div className="mt-2">
+                                <h4 className="text-sm font-medium mb-1">Queue Assignment Details</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                  {Object.entries(item.metadata)
+                                    .filter(([key, value]) => value !== null)
+                                    .map(([key, value]) => (
+                                      <div key={key} className="p-2 bg-muted rounded">
+                                        <span className="font-medium">{toSentenceCase(key)}:</span> {
+                                          typeof value === 'object' && value !== null
+                                            ? JSON.stringify(value)
+                                            : value?.toString()
+                                        }
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {item.type === "assignee_manual_update" && item.metadata && (
+                              <div className="mt-2">
+                                <h4 className="text-sm font-medium mb-1">Manual Assignment Details</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                  {Object.entries(item.metadata)
+                                    .filter(([key, value]) => 
+                                      value !== null && 
+                                      !['active_task_ids'].includes(key) && // Exclude arrays that would be too long
+                                      (typeof value !== 'object' || key === 'payload') // Include payload for the detailed info
+                                    )
+                                    .map(([key, value]) => {
+                                      // Special handling for payload, which is an object
+                                      if (key === 'payload' && typeof value === 'object') {
+                                        return (
+                                          <div key={key} className="p-2 bg-muted rounded col-span-2 md:col-span-3">
+                                            <span className="font-medium">Payload:</span>
+                                            <div className="mt-1 grid grid-cols-1 md:grid-cols-2 gap-1">
+                                              {Object.entries(value as object).map(([payloadKey, payloadValue]) => (
+                                                <div key={payloadKey} className="text-xs">
+                                                  <span className="font-medium">{toSentenceCase(payloadKey)}:</span> {payloadValue?.toString()}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                      return (
+                                        <div key={key} className="p-2 bg-muted rounded">
+                                          <span className="font-medium">{toSentenceCase(key)}:</span> {
+                                            Array.isArray(value) 
+                                              ? value.slice(0, 3).join(', ') + (value.length > 3 ? '...' : '')
+                                              : value?.toString()
+                                          }
+                                        </div>
+                                      );
+                                    })}
                                 </div>
                               </div>
                             )}
@@ -308,7 +398,7 @@ const TaskDeepDive = () => {
             </p>
             <div className="flex flex-col space-y-2">
               <div className="flex items-center space-x-2">
-                <Circle className="text-green-500 h-5 w-5" />
+                <CheckCircle className="text-green-500 h-5 w-5" />
                 <span>Task activated events</span>
               </div>
               <div className="flex items-center space-x-2">
@@ -318,6 +408,18 @@ const TaskDeepDive = () => {
               <div className="flex items-center space-x-2">
                 <Users className="text-blue-500 h-5 w-5" />
                 <span>Task assignment events</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Users className="text-indigo-500 h-5 w-5" />
+                <span>Manual assignment events</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Clock className="text-yellow-500 h-5 w-5" />
+                <span>Queued assignment events</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Clock className="text-orange-500 h-5 w-5" />
+                <span>Queued events</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Activity className="text-purple-500 h-5 w-5" />
