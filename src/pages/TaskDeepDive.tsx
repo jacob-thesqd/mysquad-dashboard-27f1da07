@@ -84,17 +84,17 @@ const TaskDeepDive = () => {
   const getItemIcon = (type: string) => {
     switch (type) {
       case "activated":
-        return <CheckCircle className="text-green-500 mr-2" />;
+        return <CheckCircle className="text-green-500" />;
       case "deactivated":
-        return <Circle className="text-red-500 mr-2" />;
+        return <Circle className="text-red-500" />;
       case "assign":
-        return <Users className="text-blue-500 mr-2" />;
+        return <Users className="text-blue-500" />;
       case "queued_assign":
-        return <Clock className="text-yellow-500 mr-2" />;
+        return <Clock className="text-yellow-500" />;
       case "trigger":
-        return <Activity className="text-purple-500 mr-2" />;
+        return <Activity className="text-purple-500" />;
       default:
-        return <Compass className="text-gray-500 mr-2" />;
+        return <Compass className="text-gray-500" />;
     }
   };
 
