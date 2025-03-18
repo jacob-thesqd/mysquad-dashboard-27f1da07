@@ -43,23 +43,26 @@ export function AuditDetail({
   }, [audit, onFetchTaskDetails]);
 
   // Function to highlight keywords in markdown content
-  const highlightKeywords = (content: string, keywords: string | undefined) => {
-    if (!keywords || !content) return content;
-  
-    // Split keywords if there are multiple (comma-separated)
-    const keywordArray = keywords.split(',').map(k => k.trim().toLowerCase());
-  
-    // Replace each keyword with highlighted version, case insensitive
-    let highlightedContent = content;
-    keywordArray.forEach(keyword => {
-      if (keyword) {
-        const regex = new RegExp(`(${keyword})`, 'gi');
-        highlightedContent = highlightedContent.replace(regex, '**$1**');
-      }
-    });
-  
-    return highlightedContent;
-  };
+const highlightKeywords = (content: string, keywords: string | undefined) => {
+  if (!keywords || !content) return content;
+
+  // Split keywords if there are multiple (comma-separated)
+  const keywordArray = keywords.split(',').map(k => k.trim().toLowerCase());
+
+  // Replace each keyword with highlighted and bold version, case insensitive
+  let highlightedContent = content;
+  keywordArray.forEach(keyword => {
+    if (keyword) {
+      const regex = new RegExp(`(${keyword})`, 'gi');
+      highlightedContent = highlightedContent.replace(
+        regex, 
+        '<span style="background-color: #ffeb3b; font-weight: bold;">$1</span>'
+      );
+    }
+  });
+
+  return highlightedContent;
+};
 
   const handleMarkComplete = (rowId: string) => {
     onMarkComplete(rowId);
