@@ -310,7 +310,7 @@ const TaskDeepDive = () => {
                 <SelectValue placeholder="Select event type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all_types">All Types</SelectItem>
                 {eventTypes?.map((type) => (
                   <SelectItem key={type} value={type}>{toSentenceCase(type)}</SelectItem>
                 ))}
@@ -326,7 +326,7 @@ const TaskDeepDive = () => {
                 <SelectValue placeholder="Select status after" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status After</SelectItem>
+                <SelectItem value="all_status_after">All Status After</SelectItem>
                 {statusOptions?.map((status) => (
                   <SelectItem key={`after-${status}`} value={status}>{status}</SelectItem>
                 ))}
@@ -342,7 +342,7 @@ const TaskDeepDive = () => {
                 <SelectValue placeholder="Select status before" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status Before</SelectItem>
+                <SelectItem value="all_status_before">All Status Before</SelectItem>
                 {statusOptions?.map((status) => (
                   <SelectItem key={`before-${status}`} value={status}>{status}</SelectItem>
                 ))}
