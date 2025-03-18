@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, ArrowRight, CalendarClock, CheckCircle, Circle, Clock, Compass, Github, Users } from "lucide-react";
+import { Activity, ArrowRight, CalendarClock, CheckCircle, Circle, Clock, Compass, Users } from "lucide-react";
 import { formatDistance, format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -198,7 +198,7 @@ const TaskDeepDive = () => {
                   <span className="text-sm text-muted-foreground">
                     for {uniqueData[0].task_id !== identifier ? 'Account #' : 'Task '} 
                     {uniqueData[0].task_id !== identifier ? uniqueData[0].account : uniqueData[0].task_id}
-                    {uniqueData[0].metadata?.account_info?.church_name && ` (${uniqueData[0].account} - ${uniqueData[0].metadata.account_info.church_name})`}
+                    {uniqueData[0].metadata?.account_info?.church_name && ` (${uniqueData[0].metadata.account_info.church_name})`}
                   </span>
                 )}
               </div>
@@ -234,7 +234,6 @@ const TaskDeepDive = () => {
                           <div className="space-y-3">
                             {item.task_id && item.task_id !== identifier && (
                               <p className="text-sm flex items-center">
-                                <Github className="h-4 w-4 mr-1.5 text-muted-foreground" />
                                 Task ID: <span className="font-mono ml-1">{item.task_id}</span>
                               </p>
                             )}
