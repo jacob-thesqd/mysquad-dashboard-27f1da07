@@ -198,12 +198,12 @@ const TaskDeepDive = () => {
                   <span className="text-sm text-muted-foreground">
                     for {uniqueData[0].task_id !== identifier ? 'Account #' : 'Task '} 
                     {uniqueData[0].task_id !== identifier ? uniqueData[0].account : uniqueData[0].task_id}
-                    {uniqueData[0].metadata?.account_info?.church_name && ` (${uniqueData[0].metadata.account_info.church_name})`}
+                    {uniqueData[0].metadata?.account_info?.church_name && ` (${uniqueData[0].account} - ${uniqueData[0].metadata.account_info.church_name})`}
                   </span>
                 )}
               </div>
               
-              <ScrollArea className="h-[calc(100vh-200px)] pr-4 overflow-y-auto">
+              <ScrollArea className="h-[calc(100vh-220px)] pr-4 overflow-y-auto">
                 <div className="relative ml-6 border-l-2 border-border pl-8 pb-10">
                   {uniqueData.map((item, index) => (
                     <div key={index} className="mb-8 relative">
