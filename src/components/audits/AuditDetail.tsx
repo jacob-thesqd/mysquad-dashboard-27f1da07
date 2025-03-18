@@ -119,12 +119,12 @@ export function AuditDetail({
 
           {!audit.row_updated && showCompleteButton && <Button onClick={() => handleMarkComplete(audit.row_id)} disabled={!!audit.row_updated || isCompleting} className="bg-green-500 hover:bg-green-600 text-white absolute top-2 right-2 z-10" size="sm">
             {isCompleting ? 'Marking...' : (
-                  <>
-                    <CircleCheck size={16} />
-                    Mark Complete
-                  </>
-                )}
-              </button>}
+                <>
+                  <CircleCheck size={16} />
+                  Mark Complete
+                </>
+              )}
+            </button>
         </div>
 
         {isLoadingDetails ? <div className="space-y-4 mt-6">
