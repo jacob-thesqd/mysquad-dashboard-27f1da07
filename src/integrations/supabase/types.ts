@@ -5473,6 +5473,7 @@ export type Database = {
       get_aa_decision_log: {
         Args: {
           p_identifier: string
+          p_search_type?: string
         }
         Returns: {
           task_id: string

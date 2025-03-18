@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,13 @@ import { Activity, ArrowRight, CalendarClock, CheckCircle, Circle, Clock, Compas
 import { formatDistance, format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DecisionLogItem {
   task_id: string;
@@ -28,12 +35,60 @@ interface DecisionLogItem {
 const TaskDeepDive = () => {
   const [identifier, setIdentifier] = useState<string>("");
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
+  const [searchType, setSearchType] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [statusAfterFilter, setStatusAfterFilter] = useState<string>("");
+  const [statusBeforeFilter, setStatusBeforeFilter] = useState<string>("");
+  
+  // Fetch possible statuses for dropdowns
+  const { data: statusOptions } = useQuery({
+    queryKey: ["statusOptions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clickup_statuses')
+        .select('status')
+        .order('status', { ascending: true });
+      
+      if (error) {
+        console.error("Error fetching statuses:", error);
+        throw new Error(error.message);
+      }
+      
+      return data.map(item => item.status);
+    }
+  });
+
+  // Fetch event types for type filter
+  const { data: eventTypes } = useQuery({
+    queryKey: ["eventTypes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('aa_decision_log')
+        .select('type')
+        .order('type', { ascending: true })
+        .not('type', 'is', null);
+      
+      if (error) {
+        console.error("Error fetching event types:", error);
+        throw new Error(error.message);
+      }
+      
+      // Get unique types
+      const types = new Set(data.map(item => item.type));
+      return Array.from(types);
+    }
+  });
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["aaDecisionLog", identifier],
+    queryKey: ["aaDecisionLog", identifier, searchType, typeFilter, statusAfterFilter, statusBeforeFilter],
     queryFn: async () => {
+      // Determine the appropriate p_identifier based on filters and search type
+      const p_identifier = identifier || typeFilter || statusAfterFilter || statusBeforeFilter || "";
+      const p_search_type = identifier ? searchType : typeFilter ? "type" : statusAfterFilter ? "status_after" : statusBeforeFilter ? "status_before" : "all";
+      
       const { data, error } = await supabase.rpc('get_aa_decision_log', {
-        p_identifier: identifier
+        p_identifier,
+        p_search_type
       });
       
       if (error) {
@@ -75,10 +130,71 @@ const TaskDeepDive = () => {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!identifier.trim()) return;
-    
     setSearchPerformed(true);
     await refetch();
+  };
+
+  // Apply additional filters to data if needed
+  const filteredData = useMemo(() => {
+    if (!uniqueData) return [];
+    
+    return uniqueData.filter(item => {
+      let matches = true;
+      
+      // Apply type filter if set
+      if (typeFilter && item.type !== typeFilter) {
+        matches = false;
+      }
+      
+      // Apply status_after filter if set
+      if (statusAfterFilter && 
+          (!item.metadata?.status_after || 
+           item.metadata.status_after !== statusAfterFilter)) {
+        matches = false;
+      }
+      
+      // Apply status_before filter if set
+      if (statusBeforeFilter && 
+          (!item.metadata?.status_before || 
+           item.metadata.status_before !== statusBeforeFilter)) {
+        matches = false;
+      }
+      
+      return matches;
+    });
+  }, [uniqueData, typeFilter, statusAfterFilter, statusBeforeFilter]);
+
+  // Convert object keys to sentence case
+  const toSentenceCase = (key: string): string => {
+    return key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  // Format metadata object with sentence case keys and handle nested objects/arrays
+  const formatMetadata = (metadata: any): any => {
+    if (!metadata) return {};
+    
+    const formattedMetadata: any = {};
+    Object.entries(metadata).forEach(([key, value]) => {
+      const newKey = toSentenceCase(key);
+      
+      // Handle nested objects
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+        formattedMetadata[newKey] = formatMetadata(value);
+      } 
+      // Handle arrays
+      else if (Array.isArray(value)) {
+        formattedMetadata[newKey] = value;
+      }
+      // Handle primitives
+      else {
+        formattedMetadata[newKey] = value;
+      }
+    });
+    
+    return formattedMetadata;
   };
 
   const getItemIcon = (type: string) => {
@@ -110,8 +226,12 @@ const TaskDeepDive = () => {
         return "Task queued for assignment";
       case "trigger":
         return "Auto-assign process triggered";
+      case "assignee_manual_update":
+        return `Task manually assigned to ${item.metadata?.changed_to || "someone"}`;
+      case "queued":
+        return `Task placed in queue`;
       default:
-        return `${item.type.charAt(0).toUpperCase() + item.type.slice(1)} event`;
+        return `${item.type.charAt(0).toUpperCase() + item.type.slice(1).replace(/_/g, ' ')} event`;
     }
   };
 
@@ -134,6 +254,24 @@ const TaskDeepDive = () => {
     }
   };
 
+  const clearFilters = () => {
+    setTypeFilter("");
+    setStatusAfterFilter("");
+    setStatusBeforeFilter("");
+    setSearchType("all");
+    setIdentifier("");
+  };
+
+  const hasActiveFilters = typeFilter || statusAfterFilter || statusBeforeFilter;
+
+  // Effect to trigger search when filters change
+  useEffect(() => {
+    if (typeFilter || statusAfterFilter || statusBeforeFilter) {
+      refetch();
+      setSearchPerformed(true);
+    }
+  }, [typeFilter, statusAfterFilter, statusBeforeFilter, refetch]);
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Task Deep Dive</h1>
@@ -149,9 +287,82 @@ const TaskDeepDive = () => {
               onChange={(e) => setIdentifier(e.target.value)}
               className="flex-1"
             />
+            <Select value={searchType} onValueChange={setSearchType}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Search type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="task_id">Task ID</SelectItem>
+                <SelectItem value="account">Account</SelectItem>
+              </SelectContent>
+            </Select>
             <Button type="submit">Search</Button>
           </div>
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          {/* Type Filter */}
+          <div>
+            <Label htmlFor="type-filter">Event Type</Label>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger id="type-filter">
+                <SelectValue placeholder="Select event type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Types</SelectItem>
+                {eventTypes?.map((type) => (
+                  <SelectItem key={type} value={type}>{toSentenceCase(type)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Status After Filter */}
+          <div>
+            <Label htmlFor="status-after-filter">Status After</Label>
+            <Select value={statusAfterFilter} onValueChange={setStatusAfterFilter}>
+              <SelectTrigger id="status-after-filter">
+                <SelectValue placeholder="Select status after" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Status After</SelectItem>
+                {statusOptions?.map((status) => (
+                  <SelectItem key={`after-${status}`} value={status}>{status}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Status Before Filter */}
+          <div>
+            <Label htmlFor="status-before-filter">Status Before</Label>
+            <Select value={statusBeforeFilter} onValueChange={setStatusBeforeFilter}>
+              <SelectTrigger id="status-before-filter">
+                <SelectValue placeholder="Select status before" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Status Before</SelectItem>
+                {statusOptions?.map((status) => (
+                  <SelectItem key={`before-${status}`} value={status}>{status}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        {hasActiveFilters && (
+          <div className="flex justify-end">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={clearFilters}
+              size="sm"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
       </form>
 
       {searchPerformed && (
@@ -182,30 +393,30 @@ const TaskDeepDive = () => {
             </Card>
           )}
 
-          {uniqueData && uniqueData.length === 0 && !isLoading && (
+          {filteredData && filteredData.length === 0 && !isLoading && (
             <Card className="bg-gray-50 dark:bg-gray-900/10">
               <CardContent className="p-4">
-                <p className="text-muted-foreground">No timeline data found for "{identifier}". Try a different Task ID or Account Number.</p>
+                <p className="text-muted-foreground">No timeline data found with the current filters. Try different filters or search criteria.</p>
               </CardContent>
             </Card>
           )}
 
-          {uniqueData && uniqueData.length > 0 && !isLoading && (
+          {filteredData && filteredData.length > 0 && !isLoading && (
             <div className="space-y-6">
               <div className="flex items-center space-x-2 mb-4">
                 <h2 className="text-xl font-semibold">Activity Timeline</h2>
-                {uniqueData[0] && (
+                {filteredData[0] && identifier && (
                   <span className="text-sm text-muted-foreground">
-                    for {uniqueData[0].task_id !== identifier ? 'Account #' : 'Task '} 
-                    {uniqueData[0].task_id !== identifier ? uniqueData[0].account : uniqueData[0].task_id}
-                    {uniqueData[0].metadata?.account_info?.church_name && ` (${uniqueData[0].metadata.account_info.church_name})`}
+                    for {filteredData[0].task_id !== identifier ? 'Account #' : 'Task '} 
+                    {filteredData[0].task_id !== identifier ? filteredData[0].account : filteredData[0].task_id}
+                    {filteredData[0].metadata?.account_info?.church_name && ` (${filteredData[0].metadata.account_info.church_name})`}
                   </span>
                 )}
               </div>
               
-              <ScrollArea className="h-[calc(100vh-220px)] pr-4 overflow-y-auto">
+              <ScrollArea className="h-[calc(100vh-350px)] pr-4 overflow-y-auto">
                 <div className="relative ml-6 border-l-2 border-border pl-8 pb-10">
-                  {uniqueData.map((item, index) => (
+                  {filteredData.map((item, index) => (
                     <div key={index} className="mb-8 relative">
                       {/* Timeline dot */}
                       <div className="absolute -left-[46px] mt-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background mr-2">
@@ -254,24 +465,98 @@ const TaskDeepDive = () => {
                                     .filter(([key]) => !['task_ids', 'draft_date'].includes(key))
                                     .map(([key, value]) => (
                                       <div key={key} className="p-2 bg-muted rounded">
-                                        <span className="font-medium">{key.replace(/_/g, ' ')}:</span> {value?.toString()}
+                                        <span className="font-medium">{toSentenceCase(key)}:</span> {value?.toString()}
                                       </div>
                                     ))}
                                 </div>
                               </div>
                             )}
                             
-                            {item.metadata && item.type === "trigger" && (
+                            {item.type === "trigger" && item.metadata && (
                               <div className="mt-2">
                                 <h4 className="text-sm font-medium mb-1">Account Status</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                  {Object.entries(item.metadata)
-                                    .filter(([key, value]) => value !== null && !['non_design_employee_data'].includes(key))
+                                  {Object.entries(formatMetadata(item.metadata))
+                                    .filter(([key, value]) => value !== null && !['non_design_employee_data'].includes(key.toLowerCase()))
                                     .map(([key, value]) => (
                                       <div key={key} className="p-2 bg-muted rounded">
-                                        <span className="font-medium">{key.replace(/_/g, ' ')}:</span> {value?.toString()}
+                                        <span className="font-medium">{key}:</span> {value?.toString()}
                                       </div>
                                     ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {item.type === "queued" && item.metadata && (
+                              <div className="mt-2">
+                                <h4 className="text-sm font-medium mb-1">Queue Status</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                  {Object.entries(formatMetadata(item.metadata))
+                                    .filter(([key, value]) => value !== null && !['non_design_employee_data'].includes(key.toLowerCase()))
+                                    .map(([key, value]) => (
+                                      <div key={key} className="p-2 bg-muted rounded">
+                                        <span className="font-medium">{key}:</span> {value?.toString()}
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {item.type === "queued_assign" && item.metadata && (
+                              <div className="mt-2">
+                                <h4 className="text-sm font-medium mb-1">Queue Assignment Details</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                  {Object.entries(formatMetadata(item.metadata))
+                                    .filter(([key, value]) => value !== null && !['non_design_employee_data'].includes(key.toLowerCase()))
+                                    .map(([key, value]) => (
+                                      <div key={key} className="p-2 bg-muted rounded">
+                                        <span className="font-medium">{key}:</span> {value?.toString()}
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {item.type === "assignee_manual_update" && item.metadata && (
+                              <div className="mt-2">
+                                <h4 className="text-sm font-medium mb-1">Manual Assignment Details</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                  {Object.entries(formatMetadata(item.metadata))
+                                    .filter(([key, value]) => value !== null)
+                                    .map(([key, value]) => {
+                                      // Handle arrays and objects specially
+                                      if (Array.isArray(value)) {
+                                        return (
+                                          <div key={key} className="p-2 bg-muted rounded col-span-2">
+                                            <span className="font-medium">{key}:</span>
+                                            <div className="mt-1 pl-2 border-l-2 border-gray-300">
+                                              {value.map((item, i) => (
+                                                <div key={i} className="text-xs">{item}</div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      } else if (value !== null && typeof value === 'object') {
+                                        return (
+                                          <div key={key} className="p-2 bg-muted rounded col-span-2">
+                                            <span className="font-medium">{key}:</span>
+                                            <div className="mt-1 pl-2 border-l-2 border-gray-300">
+                                              {Object.entries(value).map(([subKey, subValue]) => (
+                                                <div key={subKey} className="text-xs">
+                                                  <span className="font-medium">{toSentenceCase(subKey)}:</span> {subValue?.toString()}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      } else {
+                                        return (
+                                          <div key={key} className="p-2 bg-muted rounded">
+                                            <span className="font-medium">{key}:</span> {value?.toString()}
+                                          </div>
+                                        );
+                                      }
+                                    })}
                                 </div>
                               </div>
                             )}
@@ -303,12 +588,12 @@ const TaskDeepDive = () => {
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-2">Task & Account Timeline Viewer</h2>
             <p className="text-muted-foreground mb-4">
-              Enter a Task ID or Account Number above to view the detailed timeline of auto-assignment events, 
+              Search by Task ID or Account Number, or use the filters to view assignment events, 
               status changes, and other relevant activities.
             </p>
             <div className="flex flex-col space-y-2">
               <div className="flex items-center space-x-2">
-                <Circle className="text-green-500 h-5 w-5" />
+                <CheckCircle className="text-green-500 h-5 w-5" />
                 <span>Task activated events</span>
               </div>
               <div className="flex items-center space-x-2">
@@ -322,6 +607,10 @@ const TaskDeepDive = () => {
               <div className="flex items-center space-x-2">
                 <Activity className="text-purple-500 h-5 w-5" />
                 <span>Auto-assign trigger events</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Clock className="text-yellow-500 h-5 w-5" />
+                <span>Task queue events</span>
               </div>
             </div>
           </CardContent>
