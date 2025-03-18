@@ -157,22 +157,6 @@ export function AuditDetail({
           </div>
         </CardHeader>
         <CardContent className="pt-4 space-y-6">
-          {/* Assignees section */}
-          {taskDetails.assignees && taskDetails.assignees.length > 0 && <div>
-            <h4 className="text-sm font-semibold mb-2 flex items-center">
-              <User className="w-4 h-4 mr-1" />
-              Assignees
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {taskDetails.assignees.map(assignee => <div key={assignee.id} className="flex items-center space-x-2 bg-muted p-2 rounded-full">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={assignee.profilePicture} alt={assignee.username} />
-                  <AvatarFallback>{assignee.initials}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm">{assignee.username}</span>
-              </div>)}
-            </div>
-          </div>}
 
           {processedDescription && <div className="prose prose-sm max-w-none">
             <h4 className="text-sm font-semibold mb-2 flex items-center">
@@ -227,6 +211,23 @@ export function AuditDetail({
                   {processedDescription}
                 </ReactMarkdown>
               </div>
+            </div>
+          </div>}
+
+          {/* Assignees section */}
+          {taskDetails.assignees && taskDetails.assignees.length > 0 && <div>
+            <h4 className="text-sm font-semibold mb-2 flex items-center">
+              <User className="w-4 h-4 mr-1" />
+              Assignees
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {taskDetails.assignees.map(assignee => <div key={assignee.id} className="flex items-center space-x-2 bg-muted p-2 rounded-full">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={assignee.profilePicture} alt={assignee.username} />
+                  <AvatarFallback>{assignee.initials}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm">{assignee.username}</span>
+              </div>)}
             </div>
           </div>}
 
