@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,9 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, ArrowRight, CalendarClock, CheckCircle, Circle, Clock, Compass, Github, Users } from "lucide-react";
-import { formatDistance } from "date-fns";
+import { formatDistance, format } from "date-fns";
+import ReactMarkdown from "react-markdown";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DecisionLogItem {
   task_id: string;
@@ -43,6 +45,33 @@ const TaskDeepDive = () => {
     },
     enabled: false // Don't run query on component mount, only when user submits
   });
+
+  // Filter out duplicate entries based on all fields except created_at
+  const uniqueData = useMemo(() => {
+    if (!data) return [];
+    
+    const seen = new Map();
+    return data.filter(item => {
+      // Create a key based on all fields except created_at
+      const key = JSON.stringify({
+        task_id: item.task_id,
+        account: item.account,
+        type: item.type,
+        aa_designer_chosen: item.aa_designer_chosen,
+        aa_designer_chosen_data: item.aa_designer_chosen_data,
+        aa_all_choices: item.aa_all_choices,
+        aa_markdown_narrative: item.aa_markdown_narrative,
+        metadata: item.metadata
+      });
+      
+      if (seen.has(key)) {
+        return false;
+      }
+      
+      seen.set(key, true);
+      return true;
+    });
+  }, [data]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +124,16 @@ const TaskDeepDive = () => {
     }
   };
 
+  const formatTimeCentral = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      // Format in Central Time (UTC-6)
+      return format(date, "MMM d, yyyy 'at' h:mm:ss a 'CT'");
+    } catch (e) {
+      return "Invalid date";
+    }
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Task Deep Dive</h1>
@@ -143,7 +182,7 @@ const TaskDeepDive = () => {
             </Card>
           )}
 
-          {data && data.length === 0 && !isLoading && (
+          {uniqueData && uniqueData.length === 0 && !isLoading && (
             <Card className="bg-gray-50 dark:bg-gray-900/10">
               <CardContent className="p-4">
                 <p className="text-muted-foreground">No timeline data found for "{identifier}". Try a different Task ID or Account Number.</p>
@@ -151,22 +190,22 @@ const TaskDeepDive = () => {
             </Card>
           )}
 
-          {data && data.length > 0 && !isLoading && (
+          {uniqueData && uniqueData.length > 0 && !isLoading && (
             <div className="space-y-6">
               <div className="flex items-center space-x-2 mb-4">
                 <h2 className="text-xl font-semibold">Activity Timeline</h2>
-                {data[0] && (
+                {uniqueData[0] && (
                   <span className="text-sm text-muted-foreground">
-                    for {data[0].task_id !== identifier ? 'Account #' : 'Task '} 
-                    {data[0].task_id !== identifier ? data[0].account : data[0].task_id}
-                    {data[0].metadata?.account_info?.church_name && ` (${data[0].metadata.account_info.church_name})`}
+                    for {uniqueData[0].task_id !== identifier ? 'Account #' : 'Task '} 
+                    {uniqueData[0].task_id !== identifier ? uniqueData[0].account : uniqueData[0].task_id}
+                    {uniqueData[0].metadata?.account_info?.church_name && ` (${uniqueData[0].metadata.account_info.church_name})`}
                   </span>
                 )}
               </div>
               
               <ScrollArea className="h-[calc(100vh-100px)] pr-4 overflow-y-auto">
                 <div className="relative ml-6 border-l-2 border-border pl-8 pb-10">
-                  {data.map((item, index) => (
+                  {uniqueData.map((item, index) => (
                     <div key={index} className="mb-8 relative">
                       {/* Timeline dot */}
                       <div className="absolute -left-[42px] mt-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background">
@@ -177,10 +216,19 @@ const TaskDeepDive = () => {
                         <CardContent className="p-5">
                           <div className="mb-3 flex justify-between items-start">
                             <h3 className="font-semibold">{getItemTitle(item)}</h3>
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <CalendarClock className="h-3 w-3 mr-1" />
-                              {formatTimeAgo(item.created_at)}
-                            </div>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center text-xs text-muted-foreground cursor-help">
+                                    <CalendarClock className="h-3 w-3 mr-1" />
+                                    {formatTimeAgo(item.created_at)}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{formatTimeCentral(item.created_at)}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                           
                           <div className="space-y-3">
@@ -193,7 +241,9 @@ const TaskDeepDive = () => {
                             
                             {item.aa_markdown_narrative && (
                               <div className="text-sm mt-2 p-3 bg-muted rounded-md">
-                                {item.aa_markdown_narrative}
+                                <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none">
+                                  {item.aa_markdown_narrative}
+                                </ReactMarkdown>
                               </div>
                             )}
                             
