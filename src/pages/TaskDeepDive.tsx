@@ -208,7 +208,7 @@ const TaskDeepDive = () => {
                   {uniqueData.map((item, index) => (
                     <div key={index} className="mb-8 relative">
                       {/* Timeline dot */}
-                      <div className="absolute -left-[36px] mt-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background mr-2">
+                      <div className="absolute -left-[54px] mt-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background mr-2">
                         {getItemIcon(item.type)}
                       </div>
                       
