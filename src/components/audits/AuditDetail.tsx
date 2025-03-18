@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CheckCircle, AlertCircle, Link as LinkIcon, FileText, Tag, Calendar } from "lucide-react";
+import { CheckCircle, AlertCircle, Link as LinkIcon, FileText, Tag, Calendar, User } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -42,7 +42,7 @@ export function AuditDetail({
     }
   }, [audit, onFetchTaskDetails]);
 
-  // Function to highlight keywords in markdown content
+  // Function to highlight keywords in markdown content with yellow background
   const highlightKeywords = (content: string, keywords: string | undefined) => {
     if (!keywords || !content) return content;
   
@@ -54,7 +54,7 @@ export function AuditDetail({
     keywordArray.forEach(keyword => {
       if (keyword) {
         const regex = new RegExp(`(${keyword})`, 'gi');
-        highlightedContent = highlightedContent.replace(regex, '**`$1`**');
+        highlightedContent = highlightedContent.replace(regex, '`<span style="background-color: #FFEB3B; padding: 0 2px; border-radius: 2px; color: black;">$1</span>`');
       }
     });
   
@@ -89,7 +89,28 @@ export function AuditDetail({
   return <ScrollArea className="h-[calc(100vh-12rem)]">
       <div className="space-y-6 pr-4">
         <Card className="pt-2">
-          <CardContent className="space-y-4 mt-4">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <h4 className="text-sm font-semibold">Audit Details</h4>
+              <div className="flex items-center mt-1">
+                {audit.row_updated ? <div className="flex items-center text-green-600">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    <span className="text-sm">Completed</span>
+                  </div> : <div className="flex items-center text-amber-600">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    <span className="text-sm">Pending</span>
+                  </div>}
+              </div>
+            </div>
+            {!audit.row_updated && <Button 
+              onClick={() => handleMarkComplete(audit.row_id)} 
+              disabled={!!audit.row_updated || isCompleting} 
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              {isCompleting ? 'Marking as Complete...' : 'Mark as Complete'}
+            </Button>}
+          </CardHeader>
+          <CardContent className="space-y-4 mt-2">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h4 className="text-sm font-semibold mb-1">Status</h4>
@@ -118,8 +139,8 @@ export function AuditDetail({
                 <h4 className="text-sm font-semibold mb-1">Google Links</h4>
                 <ul className="text-sm space-y-1">
                   {audit.data.googleLinks.map((link, index) => <li key={index} className="flex items-center">
-                      <LinkIcon className="w-3 h-3 mr-1" />
-                      <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      <LinkIcon className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
                         {link}
                       </a>
                     </li>)}
@@ -139,11 +160,6 @@ export function AuditDetail({
                 </div>
               </div>}
           </CardContent>
-          <CardFooter>
-            <Button onClick={() => handleMarkComplete(audit.row_id)} disabled={!!audit.row_updated || isCompleting} className="w-full">
-              {audit.row_updated ? 'Already Completed' : isCompleting ? 'Marking as Complete...' : 'Mark as Complete'}
-            </Button>
-          </CardFooter>
         </Card>
 
         {isLoadingDetails ? <div className="space-y-4 mt-6">
@@ -163,6 +179,25 @@ export function AuditDetail({
               </div>
             </CardHeader>
             <CardContent className="pt-4 space-y-6">
+              {/* Assignees section moved to task details area */}
+              {taskDetails.assignees && taskDetails.assignees.length > 0 && <div>
+                <h4 className="text-sm font-semibold mb-2 flex items-center">
+                  <User className="w-4 h-4 mr-1" />
+                  Assignees
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {taskDetails.assignees.map(assignee => 
+                    <div key={assignee.id} className="flex items-center space-x-2 bg-muted p-2 rounded-full">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={assignee.profilePicture} alt={assignee.username} />
+                        <AvatarFallback>{assignee.initials}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">{assignee.username}</span>
+                    </div>
+                  )}
+                </div>
+              </div>}
+
               {processedDescription && <div className="prose prose-sm max-w-none">
                   <h4 className="text-sm font-semibold mb-2 flex items-center">
                     <FileText className="w-4 h-4 mr-1" />
@@ -246,11 +281,11 @@ export function AuditDetail({
                         !field.name.startsWith("🔴") && 
                         !field.name.startsWith("⚫"))
                       .map((field, index) => (
-                        <div key={index} className="bg-muted/30 p-3 rounded-md">
+                        <div key={index} className="bg-muted/30 p-3 rounded-md overflow-hidden">
                           <h5 className="text-xs font-medium mb-1">{field.name}</h5>
-                          <p className="text-sm">
+                          <p className="text-sm truncate overflow-hidden">
                             {typeof field.value === 'string' && field.value.startsWith('http') 
-                              ? <a href={field.value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{field.value}</a>
+                              ? <a href={field.value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate inline-block max-w-full overflow-hidden text-ellipsis">{field.value}</a>
                               : typeof field.value === 'object' && Array.isArray(field.value)
                                 ? field.value.join(', ')
                                 : String(field.value)}
