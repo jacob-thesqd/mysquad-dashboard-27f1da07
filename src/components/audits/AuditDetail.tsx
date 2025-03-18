@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CheckCircle, AlertCircle, Link as LinkIcon, FileText, Tag, Calendar, User } from "lucide-react";
+import { CheckCircle, AlertCircle, Link as LinkIcon, FileText, Tag, Calendar, User, CircleCheck } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { ScrollArea } from "@/components/ui/scroll-area";
 interface AuditDetailProps {
@@ -118,8 +118,13 @@ export function AuditDetail({
           </Card>
 
           {!audit.row_updated && showCompleteButton && <Button onClick={() => handleMarkComplete(audit.row_id)} disabled={!!audit.row_updated || isCompleting} className="bg-green-500 hover:bg-green-600 text-white absolute top-2 right-2 z-10" size="sm">
-              {isCompleting ? 'Marking...' : 'Mark Complete'}
-            </Button>}
+              isCompleting ? 'Marking...' : (
+                  <>
+                    <CircleCheck size={16} />
+                    Mark Complete
+                  </>
+                )}
+              </button>}
         </div>
 
         {isLoadingDetails ? <div className="space-y-4 mt-6">
