@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { TaskAudit, TaskDetails } from "@/types/audit";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CheckCircle, AlertCircle, Link as LinkIcon, FileText, Tag, Calendar } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { ScrollArea } from "@/components/ui/scroll-area";
+
 interface AuditDetailProps {
   audit: TaskAudit | null;
   onMarkComplete: (rowId: string) => void;
@@ -14,6 +16,7 @@ interface AuditDetailProps {
   isCompleting: boolean;
   onFetchTaskDetails: (taskId: string) => Promise<TaskDetails>;
 }
+
 export function AuditDetail({
   audit,
   onMarkComplete,
@@ -23,6 +26,7 @@ export function AuditDetail({
 }: AuditDetailProps) {
   const [taskDetails, setTaskDetails] = useState<TaskDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
   useEffect(() => {
     if (audit) {
       setIsLoadingDetails(true);
@@ -37,6 +41,30 @@ export function AuditDetail({
       setTaskDetails(null);
     }
   }, [audit, onFetchTaskDetails]);
+
+  // Function to highlight keywords in markdown content
+  const highlightKeywords = (content: string, keywords: string | undefined) => {
+    if (!keywords || !content) return content;
+    
+    // Split keywords if there are multiple (comma-separated)
+    const keywordArray = keywords.split(',').map(k => k.trim().toLowerCase());
+    
+    // Replace each keyword with highlighted version, case insensitive
+    let highlightedContent = content;
+    keywordArray.forEach(keyword => {
+      if (keyword) {
+        const regex = new RegExp(`(${keyword})`, 'gi');
+        highlightedContent = highlightedContent.replace(regex, '**$1**');
+      }
+    });
+    
+    return highlightedContent;
+  };
+
+  const handleMarkComplete = (rowId: string) => {
+    onMarkComplete(rowId);
+  };
+
   if (isLoading) {
     return <div className="space-y-4">
         <Skeleton className="w-3/4 h-8" />
@@ -44,6 +72,7 @@ export function AuditDetail({
         <Skeleton className="w-full h-32" />
       </div>;
   }
+
   if (!audit) {
     return <div className="flex flex-col items-center justify-center h-full">
         <AlertCircle className="w-8 h-8 text-muted-foreground" />
@@ -51,6 +80,12 @@ export function AuditDetail({
         <p className="text-xs text-muted-foreground">Select an audit from the sidebar to view details</p>
       </div>;
   }
+
+  // Process description text to highlight keywords if this is a keyword type audit
+  const processedDescription = audit.reason === 'keywords_found_desc' && taskDetails?.description
+    ? highlightKeywords(taskDetails.description, audit.data.keywordsFoundDesc)
+    : taskDetails?.description;
+
   return <ScrollArea className="h-[calc(100vh-12rem)]">
       <div className="space-y-6 pr-4">
         <Card className="pt-2">
@@ -105,7 +140,7 @@ export function AuditDetail({
               </div>}
           </CardContent>
           <CardFooter>
-            <Button onClick={() => onMarkComplete(audit.row_id)} disabled={!!audit.row_updated || isCompleting} className="w-full">
+            <Button onClick={() => handleMarkComplete(audit.row_id)} disabled={!!audit.row_updated || isCompleting} className="w-full">
               {audit.row_updated ? 'Already Completed' : isCompleting ? 'Marking as Complete...' : 'Mark as Complete'}
             </Button>
           </CardFooter>
@@ -128,13 +163,13 @@ export function AuditDetail({
               </div>
             </CardHeader>
             <CardContent className="pt-4 space-y-6">
-              {taskDetails.description && <div className="prose prose-sm max-w-none">
+              {processedDescription && <div className="prose prose-sm max-w-none">
                   <h4 className="text-sm font-semibold mb-2 flex items-center">
                     <FileText className="w-4 h-4 mr-1" />
                     Description
                   </h4>
                   <div className="bg-muted/50 p-4 rounded-md overflow-hidden text-sm">
-                    <ReactMarkdown>{taskDetails.description}</ReactMarkdown>
+                    <ReactMarkdown>{processedDescription}</ReactMarkdown>
                   </div>
                 </div>}
 
@@ -193,6 +228,38 @@ export function AuditDetail({
                     </p>
                   </div>}
               </div>
+
+              {/* Display non-null custom fields */}
+              {taskDetails.custom_fields && taskDetails.custom_fields.length > 0 && <div className="space-y-4">
+                  <h4 className="text-sm font-semibold">Custom Fields</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {taskDetails.custom_fields
+                      .filter(field => 
+                        field.value !== null && 
+                        field.value !== undefined && 
+                        field.name !== "Go Live Date" &&
+                        !field.name.startsWith("⚪") && 
+                        !field.name.startsWith("🟡") && 
+                        !field.name.startsWith("🔵") && 
+                        !field.name.startsWith("🟣") && 
+                        !field.name.startsWith("🟢") && 
+                        !field.name.startsWith("🔴") && 
+                        !field.name.startsWith("⚫"))
+                      .map((field, index) => (
+                        <div key={index} className="bg-muted/30 p-3 rounded-md">
+                          <h5 className="text-xs font-medium mb-1">{field.name}</h5>
+                          <p className="text-sm">
+                            {typeof field.value === 'string' && field.value.startsWith('http') 
+                              ? <a href={field.value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{field.value}</a>
+                              : typeof field.value === 'object' && Array.isArray(field.value)
+                                ? field.value.join(', ')
+                                : String(field.value)}
+                          </p>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>}
             </CardContent>
           </Card> : null}
       </div>

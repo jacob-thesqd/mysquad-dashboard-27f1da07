@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useTaskAudits } from "@/hooks/useTaskAudits";
 import { TaskAudit } from "@/types/audit";
 import { AuditSidebar } from "@/components/audits/AuditSidebar";
 import { AuditDetail } from "@/components/audits/AuditDetail";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 const Audits = () => {
   const {
     pendingAudits,
@@ -14,12 +16,35 @@ const Audits = () => {
   } = useTaskAudits();
   const [selectedAudit, setSelectedAudit] = useState<TaskAudit | null>(null);
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
+
+  useEffect(() => {
+    // If there are pending audits and no audit is selected, select the first one
+    if (pendingAudits.length > 0 && !selectedAudit) {
+      setSelectedAudit(pendingAudits[0]);
+    }
+  }, [pendingAudits, selectedAudit]);
+
   const handleSelectAudit = (audit: TaskAudit) => {
     setSelectedAudit(audit);
   };
-  const handleMarkComplete = (rowId: string) => {
-    markAsComplete.mutate(rowId);
+
+  const handleMarkComplete = async (rowId: string) => {
+    await markAsComplete.mutate(rowId);
+    
+    // After marking complete, find the next audit to display
+    if (activeTab === 'pending') {
+      const currentIndex = pendingAudits.findIndex(audit => audit.row_id === rowId);
+      if (currentIndex !== -1 && pendingAudits.length > 1) {
+        // Find the next pending audit, or go back to the first one if we're at the end
+        const nextIndex = currentIndex + 1 < pendingAudits.length ? currentIndex + 1 : 0;
+        setSelectedAudit(pendingAudits[nextIndex]);
+      } else if (pendingAudits.length === 1) {
+        // If this was the last pending audit, clear the selection or switch to completed tab
+        setSelectedAudit(null);
+      }
+    }
   };
+
   return <div className="p-8 h-[calc(100vh-4rem)]">
       <h1 className="text-2xl font-bold mb-6">Task Audits</h1>
       
@@ -52,4 +77,5 @@ const Audits = () => {
       </Tabs>
     </div>;
 };
+
 export default Audits;

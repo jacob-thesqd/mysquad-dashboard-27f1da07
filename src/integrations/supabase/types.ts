@@ -791,6 +791,75 @@ export type Database = {
         }
         Relationships: []
       }
+      current_reopened_tasks: {
+        Row: {
+          account: number | null
+          closed: string | null
+          created_at: string
+          reopened_by: number | null
+          row_id: string
+          status_after: string | null
+          status_before: string | null
+          task_id: string | null
+        }
+        Insert: {
+          account?: number | null
+          closed?: string | null
+          created_at?: string
+          reopened_by?: number | null
+          row_id: string
+          status_after?: string | null
+          status_before?: string | null
+          task_id?: string | null
+        }
+        Update: {
+          account?: number | null
+          closed?: string | null
+          created_at?: string
+          reopened_by?: number | null
+          row_id?: string
+          status_after?: string | null
+          status_before?: string | null
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "current_reopened_tasks_account_fkey"
+            columns: ["account"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["account"]
+          },
+          {
+            foreignKeyName: "current_reopened_tasks_account_fkey"
+            columns: ["account"]
+            isOneToOne: false
+            referencedRelation: "mysquad_pm_acc_mgmt"
+            referencedColumns: ["account"]
+          },
+          {
+            foreignKeyName: "current_reopened_tasks_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "clickup_users"
+            referencedColumns: ["clickup_id"]
+          },
+          {
+            foreignKeyName: "current_reopened_tasks_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "mv_all_designers"
+            referencedColumns: ["assignee_user_id"]
+          },
+          {
+            foreignKeyName: "current_reopened_tasks_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "mv_all_designers_scheduling"
+            referencedColumns: ["assignee_user_id"]
+          },
+        ]
+      }
       database_recommendations: {
         Row: {
           category: string | null
@@ -1973,7 +2042,7 @@ export type Database = {
       }
       prf_project_submissions: {
         Row: {
-          account_id: string
+          account_id: string | null
           clickup_id: string | null
           completion_target: string | null
           created_at: string | null
@@ -1982,18 +2051,19 @@ export type Database = {
           editable: boolean | null
           end_time: string | null
           files_processed: boolean | null
-          gis_id: string
+          gis_id: string | null
           hidden: boolean | null
+          is_primary: boolean
           project_name: string | null
           project_submission_id: string
-          project_type: number
-          raw_data: Json
+          project_type: number | null
+          raw_data: Json | null
           start_time: string
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
-          account_id: string
+          account_id?: string | null
           clickup_id?: string | null
           completion_target?: string | null
           created_at?: string | null
@@ -2002,18 +2072,19 @@ export type Database = {
           editable?: boolean | null
           end_time?: string | null
           files_processed?: boolean | null
-          gis_id: string
+          gis_id?: string | null
           hidden?: boolean | null
+          is_primary?: boolean
           project_name?: string | null
           project_submission_id: string
-          project_type: number
-          raw_data: Json
+          project_type?: number | null
+          raw_data?: Json | null
           start_time: string
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
-          account_id?: string
+          account_id?: string | null
           clickup_id?: string | null
           completion_target?: string | null
           created_at?: string | null
@@ -2022,15 +2093,16 @@ export type Database = {
           editable?: boolean | null
           end_time?: string | null
           files_processed?: boolean | null
-          gis_id?: string
+          gis_id?: string | null
           hidden?: boolean | null
+          is_primary?: boolean
           project_name?: string | null
           project_submission_id?: string
-          project_type?: number
-          raw_data?: Json
+          project_type?: number | null
+          raw_data?: Json | null
           start_time?: string
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -5455,7 +5527,8 @@ export type Database = {
       get_daily_metrics: {
         Args: Record<PropertyKey, never>
         Returns: {
-          count: number
+          current_count: number
+          ytd_daily_avg: number
           type: string
         }[]
       }
