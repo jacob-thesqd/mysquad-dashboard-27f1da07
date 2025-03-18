@@ -58,15 +58,15 @@ const TaskDeepDive = () => {
     }
   });
 
-  // Fetch event types for type filter
+  // Fetch event types directly from aa_decision_log table
   const { data: eventTypes } = useQuery({
     queryKey: ["eventTypes"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('aa_decision_log')
         .select('type')
-        .order('type', { ascending: true })
-        .not('type', 'is', null);
+        .not('type', 'is', null)
+        .order('type', { ascending: true });
       
       if (error) {
         console.error("Error fetching event types:", error);
@@ -142,12 +142,13 @@ const TaskDeepDive = () => {
       let matches = true;
       
       // Apply type filter if set
-      if (typeFilter && item.type !== typeFilter) {
+      if (typeFilter && typeFilter !== "all_types" && item.type !== typeFilter) {
         matches = false;
       }
       
       // Apply status_after filter if set
       if (statusAfterFilter && 
+          statusAfterFilter !== "all_status_after" && 
           (!item.metadata?.status_after || 
            item.metadata.status_after !== statusAfterFilter)) {
         matches = false;
@@ -155,6 +156,7 @@ const TaskDeepDive = () => {
       
       // Apply status_before filter if set
       if (statusBeforeFilter && 
+          statusBeforeFilter !== "all_status_before" && 
           (!item.metadata?.status_before || 
            item.metadata.status_before !== statusBeforeFilter)) {
         matches = false;
@@ -285,7 +287,7 @@ const TaskDeepDive = () => {
               placeholder="Enter Task ID or Account Number"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              className="flex-1"
+              className="w-2/3" // Made search bar less wide
             />
             <Select value={searchType} onValueChange={setSearchType}>
               <SelectTrigger className="w-40">
@@ -297,7 +299,7 @@ const TaskDeepDive = () => {
                 <SelectItem value="account">Account</SelectItem>
               </SelectContent>
             </Select>
-            <Button type="submit">Search</Button>
+            <Button type="submit" className="w-32">Search</Button> {/* Made button slightly wider */}
           </div>
         </div>
         
