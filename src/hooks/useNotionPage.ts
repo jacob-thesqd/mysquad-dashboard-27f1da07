@@ -11,6 +11,7 @@ export function useNotionPage(pageId: string) {
   const fetchNotionPage = async (): Promise<ExtendedRecordMap> => {
     try {
       console.log('Fetching Notion page:', pageId);
+      // Use the more browser-friendly notion client
       const recordMap = await notion.getPage(pageId);
       console.log('Notion page fetched successfully');
       return recordMap;

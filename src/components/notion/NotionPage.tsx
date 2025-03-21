@@ -65,6 +65,16 @@ const NotionPage: React.FC<NotionPageProps> = ({ recordMap, loading, error }) =>
           fullPage={false}
           darkMode={document.documentElement.classList.contains('dark')}
           disableHeader
+          // Explicitly set component overrides to null to avoid Node.js specific components
+          components={{
+            // These would typically be dynamic imports in Node environment
+            // but we're setting them to null in browser
+            code: null,
+            collection: null,
+            equation: null,
+            pdf: null,
+            modal: null
+          }}
         />
       </div>
     </ScrollArea>
