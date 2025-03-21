@@ -1,9 +1,9 @@
 
 import { NotionAPI } from 'notion-client';
 
-// Create a Notion client
+// Create a Notion client with browser-friendly configuration
 export const notion = new NotionAPI({
-  // Making it browser-friendly
+  // These options ensure the client works in browser environments
   apiBaseUrl: undefined,
   authToken: undefined,
   activeUser: undefined,
