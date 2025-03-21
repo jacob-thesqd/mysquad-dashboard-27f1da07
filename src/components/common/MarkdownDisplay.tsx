@@ -4,14 +4,16 @@ import ReactMarkdown from 'react-markdown';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface MarkdownDisplayProps {
   markdown: string;
   loading?: boolean;
   error?: string | null;
+  refetch?: () => void;
 }
 
-const MarkdownDisplay: React.FC<MarkdownDisplayProps> = ({ markdown, loading, error }) => {
+const MarkdownDisplay: React.FC<MarkdownDisplayProps> = ({ markdown, loading, error, refetch }) => {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -31,8 +33,18 @@ const MarkdownDisplay: React.FC<MarkdownDisplayProps> = ({ markdown, loading, er
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
+        <AlertDescription className="flex flex-col gap-2">
           {error}
+          {refetch && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refetch()}
+              className="self-start mt-2"
+            >
+              Try Again
+            </Button>
+          )}
         </AlertDescription>
       </Alert>
     );

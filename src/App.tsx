@@ -14,7 +14,12 @@ import Audits from "./pages/Audits";
 import TaskDeepDive from "./pages/TaskDeepDive";
 import Processes from "./pages/Processes";
 import Login from "./pages/Login";
-import { useEffect } from "react";
+
+// Import all required styles
+import 'react-notion-x/src/styles.css';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'katex/dist/katex.min.css';
+import './styles/notion.css';
 
 // Initialize QueryClient with default options for better caching
 const queryClient = new QueryClient({

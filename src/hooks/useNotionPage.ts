@@ -1,20 +1,20 @@
-import { useState, useEffect } from "react";
-import { getNotionPage } from "@/lib/notion";
+
 import { ExtendedRecordMap } from "notion-types";
 import { useQuery } from "@tanstack/react-query";
+import { fetchNotionPage } from "@/api/notionApi";
 
 export function useNotionPage(pageId: string) {
   const fetchPage = async () => {
     try {
       console.log('Fetching Notion page:', pageId);
-      const data = await getNotionPage(pageId);
+      const recordMap = await fetchNotionPage(pageId);
       
-      if (!data) {
+      if (!recordMap) {
         throw new Error("Failed to load Notion page");
       }
       
       console.log('Notion page fetched successfully');
-      return data;
+      return recordMap as ExtendedRecordMap;
     } catch (err) {
       console.error("Error fetching Notion page:", err);
       throw err;
