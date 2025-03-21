@@ -22,6 +22,7 @@ export function useAutoAssignerDocs() {
         
       const data: AutoAssignerDocsResponse = await response.json();
       console.log('here2')
+      console.log(response.json())
       return data.markdown || "";
       console.log('here3')
     } catch (err) {
