@@ -3,7 +3,8 @@ import React from 'react';
 import { NotionRenderer } from 'react-notion-x';
 import { ExtendedRecordMap } from 'notion-types';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 // Import styles for the Notion renderer
 import 'react-notion-x/src/styles.css';
