@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 // Cache time in milliseconds (2 hours)
 const CACHE_TIME = 2 * 60 * 60 * 1000;
@@ -13,20 +14,17 @@ export function useAutoAssignerDocs() {
   const fetchDocumentation = async (): Promise<string> => {
     try {
       const response = await fetch("https://sis1.thesqd.com/webhook/8136931f-c2d6-4350-adce-49db3b8b3863");
-      console.log('here0')
+      console.log('Fetching documentation');
         
       if (!response.ok) {
-        console.log('here1')
         throw new Error(`Failed to fetch documentation: ${response.status}`);
       }
         
       const data: AutoAssignerDocsResponse = await response.json();
-      console.log('here2')
-      console.log(response.json())
+      console.log('Documentation fetched successfully');
+      
       return data.markdown || "";
-      console.log('here3')
     } catch (err) {
-      console.log('here4')
       console.error("Error fetching documentation:", err);
       throw err;
     }
