@@ -1,7 +1,7 @@
 
 import React from "react";
 import { NotionPage } from "@/components/notion/NotionPage";
-import { useNotionPage } from "@/hooks/useNotionPage";
+//import { useNotionPage } from "@/hooks/useNotionPage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
