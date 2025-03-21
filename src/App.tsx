@@ -14,8 +14,23 @@ import Audits from "./pages/Audits";
 import TaskDeepDive from "./pages/TaskDeepDive";
 import Processes from "./pages/Processes";
 import Login from "./pages/Login";
+import { useEffect } from "react";
+import { useAutoAssignerDocs } from "./hooks/useAutoAssignerDocs";
 
+// Initialize QueryClient
 const queryClient = new QueryClient();
+
+// Preload component to fetch documentation in the background
+const PreloadData = () => {
+  const { refetch } = useAutoAssignerDocs();
+  
+  useEffect(() => {
+    // Prefetch the data in the background
+    refetch();
+  }, [refetch]);
+  
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -25,6 +40,7 @@ const App = () => (
         <Sonner />
         <SidebarProvider>
           <BrowserRouter>
+            <PreloadData />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
