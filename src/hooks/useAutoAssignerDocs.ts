@@ -46,7 +46,7 @@ export function useAutoAssignerDocs() {
   return {
     markdown,
     loading,
-    error: error instanceof Error ? error.message : "Failed to fetch documentation",
+    error: error ? (error instanceof Error ? error.message : "Failed to fetch documentation") : null,
     refetch
   };
 }
