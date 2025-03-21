@@ -4,6 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AutoAssigner from "@/components/processes/AutoAssigner";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAutoAssignerDocs } from "@/hooks/useAutoAssignerDocs";
 
 const processes = [
   { id: "auto-assigner", name: "Auto-Assigner" },
@@ -13,16 +16,30 @@ const processes = [
 
 const Processes = () => {
   const [activeProcess, setActiveProcess] = useState("auto-assigner");
+  const { refetch } = useAutoAssignerDocs();
   useDocumentTitle("Processes");
 
   return (
     <div className="p-8 h-full overflow-y-auto">
       <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Processes</h1>
-          <p className="text-muted-foreground">
-            View and manage system processes documentation
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Processes</h1>
+            <p className="text-muted-foreground">
+              View and manage system processes documentation
+            </p>
+          </div>
+          {activeProcess === "auto-assigner" && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refetch()}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh Docs
+            </Button>
+          )}
         </div>
 
         <Card className="p-6">
