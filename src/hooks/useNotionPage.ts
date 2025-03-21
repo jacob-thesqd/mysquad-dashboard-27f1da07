@@ -1,45 +1,46 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { getNotionPage } from "@/lib/notion";
 import { ExtendedRecordMap } from "notion-types";
 
-// Cache time in milliseconds (2 hours)
-const CACHE_TIME = 2 * 60 * 60 * 1000;
-
 export function useNotionPage(pageId: string) {
-  const fetchNotionPage = async (): Promise<ExtendedRecordMap | null> => {
+  const [recordMap, setRecordMap] = useState<ExtendedRecordMap | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPage = async () => {
     try {
+      setLoading(true);
       console.log('Fetching Notion page:', pageId);
-      const recordMap = await getNotionPage(pageId);
-      console.log('Notion page fetched successfully');
+      const data = await getNotionPage(pageId);
       
-      return recordMap;
+      if (data) {
+        console.log('Notion page fetched successfully');
+        setRecordMap(data);
+        setError(null);
+      } else {
+        setError("Failed to load Notion page");
+      }
     } catch (err) {
       console.error("Error fetching Notion page:", err);
-      throw err;
+      setError(err instanceof Error ? err.message : "Failed to fetch Notion page");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const { 
-    data: recordMap,
-    isLoading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ["notionPage", pageId],
-    queryFn: fetchNotionPage,
-    staleTime: CACHE_TIME,
-    gcTime: CACHE_TIME,
-    retry: 2,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false
-  });
+  useEffect(() => {
+    fetchPage();
+  }, [pageId]);
+
+  const refetch = () => {
+    fetchPage();
+  };
 
   return {
     recordMap,
-    loading: isLoading,
-    error: error ? (error instanceof Error ? error.message : "Failed to fetch Notion page") : null,
+    loading,
+    error,
     refetch
   };
 }

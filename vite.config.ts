@@ -25,13 +25,30 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    // Add process.env shim for packages that depend on it (like notion-client)
-    'process.env': {},
-    'process.env.NODE_ENV': JSON.stringify(mode),
-    // Add global process for notion-client
+    // Add process.env shim for packages that depend on it
+    'process.env': {
+      NODE_ENV: JSON.stringify(mode),
+      // Add other environment variables as needed
+      REACT_APP_NOTION_API_BASE_URL: undefined,
+      REACT_APP_NOTION_TOKEN: undefined,
+      REACT_APP_NOTION_ACTIVE_USER: undefined,
+      REACT_APP_NOTION_USER_TIMEZONE: undefined
+    },
+    // Add global process for notion-client with more complete shims
+    'global': {},
     'process': {
-      'env': {},
-      'nextTick': (callback: Function, ...args: any[]) => setTimeout(() => callback(...args), 0)
+      'browser': true,
+      'env': {
+        NODE_ENV: JSON.stringify(mode),
+        REACT_APP_NOTION_API_BASE_URL: undefined,
+        REACT_APP_NOTION_TOKEN: undefined,
+        REACT_APP_NOTION_ACTIVE_USER: undefined,
+        REACT_APP_NOTION_USER_TIMEZONE: undefined
+      },
+      'nextTick': (callback: Function, ...args: any[]) => setTimeout(() => callback(...args), 0),
+      'version': '',
+      'versions': { node: '16.0.0' },
+      'platform': 'browser'
     },
   },
   build: {

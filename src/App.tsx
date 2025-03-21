@@ -15,7 +15,6 @@ import TaskDeepDive from "./pages/TaskDeepDive";
 import Processes from "./pages/Processes";
 import Login from "./pages/Login";
 import { useEffect } from "react";
-import { useAutoAssignerDocs } from "./hooks/useAutoAssignerDocs";
 
 // Initialize QueryClient with default options for better caching
 const queryClient = new QueryClient({
@@ -25,24 +24,10 @@ const queryClient = new QueryClient({
       refetchOnMount: false,
       refetchOnReconnect: false,
       staleTime: 2 * 60 * 60 * 1000, // 2 hours
+      retry: 1, // Reduce retries to minimize failed network requests
     },
   },
 });
-
-// Preload component to fetch documentation in the background only once
-const PreloadData = () => {
-  const { refetch } = useAutoAssignerDocs();
-  
-  useEffect(() => {
-    // Prefetch the data in the background only once on initial load
-    const cachedData = queryClient.getQueryData(["autoAssignerDocs"]);
-    if (!cachedData) {
-      refetch();
-    }
-  }, [refetch]);
-  
-  return null;
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -52,7 +37,6 @@ const App = () => (
         <Sonner />
         <SidebarProvider>
           <BrowserRouter>
-            <PreloadData />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
