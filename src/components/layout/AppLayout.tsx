@@ -1,7 +1,21 @@
 
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter } from "@/components/ui/collapsible-sidebar";
-import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, Waves, Hourglass, CalendarDays } from "lucide-react";
+import { 
+  MapPin, 
+  Settings, 
+  ChevronsUpDown, 
+  AudioWaveform, 
+  Award, 
+  Package, 
+  SunMoon, 
+  LogOut, 
+  SquareChartGantt, 
+  Waves, 
+  Hourglass, 
+  CalendarDays,
+  Workflow
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -122,6 +136,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 onClick={() => handleNavigation("/scheduling")}
               >
                 Scheduling
+              </SidebarItem>
+              <SidebarItem 
+                icon={Workflow} 
+                active={location.pathname === "/processes"} 
+                onClick={() => handleNavigation("/processes")}
+              >
+                Processes
               </SidebarItem>
             </SidebarSection>
           </div>

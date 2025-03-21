@@ -1906,8 +1906,12 @@ export type Database = {
         Row: {
           account_id: string | null
           created_at: string | null
+          dropbox_folder_id: string | null
+          dropbox_folder_path: string | null
           end_time: string
+          folder_created: string | null
           raw_data: Json
+          seq_folder_number: number | null
           start_time: string
           submission_id: string
           updated_at: string | null
@@ -1916,8 +1920,12 @@ export type Database = {
         Insert: {
           account_id?: string | null
           created_at?: string | null
+          dropbox_folder_id?: string | null
+          dropbox_folder_path?: string | null
           end_time: string
+          folder_created?: string | null
           raw_data: Json
+          seq_folder_number?: number | null
           start_time: string
           submission_id?: string
           updated_at?: string | null
@@ -1926,8 +1934,12 @@ export type Database = {
         Update: {
           account_id?: string | null
           created_at?: string | null
+          dropbox_folder_id?: string | null
+          dropbox_folder_path?: string | null
           end_time?: string
+          folder_created?: string | null
           raw_data?: Json
+          seq_folder_number?: number | null
           start_time?: string
           submission_id?: string
           updated_at?: string | null
@@ -2050,7 +2062,7 @@ export type Database = {
           edit_id: string | null
           editable: boolean | null
           end_time: string | null
-          files_processed: boolean | null
+          files_processed: string | null
           gis_id: string | null
           hidden: boolean | null
           is_primary: boolean
@@ -2071,7 +2083,7 @@ export type Database = {
           edit_id?: string | null
           editable?: boolean | null
           end_time?: string | null
-          files_processed?: boolean | null
+          files_processed?: string | null
           gis_id?: string | null
           hidden?: boolean | null
           is_primary?: boolean
@@ -2092,7 +2104,7 @@ export type Database = {
           edit_id?: string | null
           editable?: boolean | null
           end_time?: string | null
-          files_processed?: boolean | null
+          files_processed?: string | null
           gis_id?: string | null
           hidden?: boolean | null
           is_primary?: boolean
@@ -2184,7 +2196,6 @@ export type Database = {
           filter_categories: string[] | null
           form_id: string | null
           id: number
-          image_url: string | null
           image_urls: Json | null
           is_primary: boolean
           keywords: string[] | null
@@ -2202,7 +2213,6 @@ export type Database = {
           filter_categories?: string[] | null
           form_id?: string | null
           id?: never
-          image_url?: string | null
           image_urls?: Json | null
           is_primary?: boolean
           keywords?: string[] | null
@@ -2220,7 +2230,6 @@ export type Database = {
           filter_categories?: string[] | null
           form_id?: string | null
           id?: never
-          image_url?: string | null
           image_urls?: Json | null
           is_primary?: boolean
           keywords?: string[] | null
@@ -4815,6 +4824,63 @@ export type Database = {
         }
         Relationships: []
       }
+      wetransfer_projects: {
+        Row: {
+          body_text: string | null
+          clickup_id: string | null
+          clickup_url: string | null
+          created_at: string | null
+          download_link: string
+          email: string
+          expires_on: string | null
+          expires_timestamp: number | null
+          files: Json | null
+          id: number
+          item_count: number | null
+          project_type: string
+          status: string | null
+          timestamp: number
+          total_size: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          body_text?: string | null
+          clickup_id?: string | null
+          clickup_url?: string | null
+          created_at?: string | null
+          download_link: string
+          email: string
+          expires_on?: string | null
+          expires_timestamp?: number | null
+          files?: Json | null
+          id?: number
+          item_count?: number | null
+          project_type: string
+          status?: string | null
+          timestamp: number
+          total_size?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          body_text?: string | null
+          clickup_id?: string | null
+          clickup_url?: string | null
+          created_at?: string | null
+          download_link?: string
+          email?: string
+          expires_on?: string | null
+          expires_timestamp?: number | null
+          files?: Json | null
+          id?: number
+          item_count?: number | null
+          project_type?: string
+          status?: string | null
+          timestamp?: number
+          total_size?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       active_projects: {
@@ -5497,6 +5563,19 @@ export type Database = {
           cap: number
           room: number
           queued_count: number
+        }[]
+      }
+      get_account_task_stats: {
+        Args: {
+          account_id_param: number
+        }
+        Returns: {
+          account: number
+          active_tasks: number
+          active_task_ids: string[]
+          cap: number
+          room: number
+          aa_queued_count: number
         }[]
       }
       get_assigned_tasks: {
