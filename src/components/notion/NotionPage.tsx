@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { NotionRenderer } from 'react-notion-x';
 import { ExtendedRecordMap } from 'notion-types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Import styles for the Notion renderer
 import 'react-notion-x/src/styles.css';
@@ -15,9 +15,10 @@ interface NotionPageProps {
   recordMap: ExtendedRecordMap | null;
   loading?: boolean;
   error?: string | null;
+  refetch?: () => void;
 }
 
-const NotionPage: React.FC<NotionPageProps> = ({ recordMap, loading, error }) => {
+const NotionPage: React.FC<NotionPageProps> = ({ recordMap, loading, error, refetch }) => {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -37,8 +38,18 @@ const NotionPage: React.FC<NotionPageProps> = ({ recordMap, loading, error }) =>
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          {error}
+        <AlertDescription className="flex flex-col gap-2">
+          <p>{error}</p>
+          {refetch && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refetch()}
+              className="self-start"
+            >
+              Try Again
+            </Button>
+          )}
         </AlertDescription>
       </Alert>
     );
@@ -62,6 +73,11 @@ const NotionPage: React.FC<NotionPageProps> = ({ recordMap, loading, error }) =>
         fullPage={false}
         darkMode={false}
         disableHeader={true}
+        mapPageUrl={pageId => `/docs/${pageId}`}
+        previewImages={true}
+        showCollectionViewDropdown={false}
+        showTableOfContents={false}
+        minTableOfContentsItems={3}
       />
     </div>
   );

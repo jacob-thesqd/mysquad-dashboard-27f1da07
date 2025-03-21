@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getNotionPage } from "@/lib/notion";
 import { ExtendedRecordMap } from "notion-types";
@@ -31,6 +30,7 @@ export function useNotionPage(pageId: string) {
     queryKey: ["notionPage", pageId],
     queryFn: fetchPage,
     retry: 1,
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour to reduce API calls
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false
