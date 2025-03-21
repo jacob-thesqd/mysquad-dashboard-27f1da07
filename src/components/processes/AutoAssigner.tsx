@@ -44,9 +44,20 @@ const AutoAssigner = () => {
             h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mb-4 mt-6" {...props} />,
             h2: ({ node, ...props }) => <h2 className="text-xl font-bold mb-3 mt-5" {...props} />,
             h3: ({ node, ...props }) => <h3 className="text-lg font-semibold mb-2 mt-4" {...props} />,
-            ul: ({ node, ...props }) => <ul className="list-disc pl-6 mb-4" {...props} />,
-            ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mb-4" {...props} />,
-            li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+            ul: ({ node, ...props }) => <ul className="list-disc pl-6 mb-4 space-y-1" {...props} />,
+            ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mb-4 space-y-1" {...props} />,
+            li: ({ node, className, children, ...props }) => {
+              // Check if children contain another list to handle nested lists properly
+              const hasNestedList = React.Children.toArray(children).some(
+                child => React.isValidElement(child) && (child.type === 'ul' || child.type === 'ol')
+              );
+              
+              return (
+                <li className={`${hasNestedList ? 'mb-0' : 'mb-1'}`} {...props}>
+                  {children}
+                </li>
+              );
+            },
             p: ({ node, ...props }) => <p className="mb-4" {...props} />,
             a: ({ node, href, ...props }) => (
               <a 

@@ -115,11 +115,19 @@ function blockToMarkdown(block: NotionBlock, listNumber: number): string {
     case 'heading_3':
       return `### ${formatRichText(block.heading_3.rich_text)}`;
       
-    case 'bulleted_list_item':
-      return `- ${formatRichText(block.bulleted_list_item.rich_text)}`;
+    case 'bulleted_list_item': {
+      const content = formatRichText(block.bulleted_list_item.rich_text);
+      // Handle tabs at the beginning of content as indicators of nesting level
+      // instead of treating them as code blocks
+      return `- ${content.replace(/^\t+/gm, (tabs) => '  '.repeat(tabs.length))}`;
+    }
       
-    case 'numbered_list_item':
-      return `${listNumber}. ${formatRichText(block.numbered_list_item.rich_text)}`;
+    case 'numbered_list_item': {
+      const content = formatRichText(block.numbered_list_item.rich_text);
+      // Handle tabs at the beginning of content as indicators of nesting level
+      // instead of treating them as code blocks
+      return `${listNumber}. ${content.replace(/^\t+/gm, (tabs) => '  '.repeat(tabs.length))}`;
+    }
       
     case 'to_do':
       const checked = block.to_do.checked ? '[x]' : '[ ]';
@@ -129,6 +137,7 @@ function blockToMarkdown(block: NotionBlock, listNumber: number): string {
       return `<details><summary>${formatRichText(block.toggle.rich_text)}</summary></details>`;
       
     case 'code':
+      // Only use code blocks for actual code, not for indented content
       return `\`\`\`${block.code.language || ''}\n${formatRichText(block.code.rich_text)}\n\`\`\``;
       
     case 'quote':
