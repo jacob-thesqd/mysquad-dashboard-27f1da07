@@ -24,15 +24,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  define: {
-    // Add this to provide the process.env object
-    'process.env': {},
-    // Fix for "process is not defined" error in notion-client
-    'process': { 
-      env: {}, 
-      browser: true
-    },
-  },
   build: {
     // This helps with Vercel analytics integration
     rollupOptions: {
