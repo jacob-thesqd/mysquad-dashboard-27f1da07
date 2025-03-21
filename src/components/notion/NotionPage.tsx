@@ -14,14 +14,15 @@ import { Collection } from 'react-notion-x/build/third-party/collection'
 import { Equation } from 'react-notion-x/build/third-party/equation'
 import { Modal } from 'react-notion-x/build/third-party/modal'
 
+// Import NotionAPI without requiring server calls
+import { NotionAPI } from 'notion-client'
+
 interface NotionPageProps {
   pageId?: string;
-  token?: string;
 }
 
 export const NotionPage: React.FC<NotionPageProps> = ({ 
-  pageId = "1bce83f731f6808a80a6e861e59f4a25", 
-  token = "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" 
+  pageId = "1bce83f731f6808a80a6e861e59f4a25"
 }) => {
   const [recordMap, setRecordMap] = useState<ExtendedRecordMap | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,29 +33,10 @@ export const NotionPage: React.FC<NotionPageProps> = ({
       try {
         setLoading(true);
         
-        // Fetch the page data using the Notion API
-        const response = await fetch(`https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Notion-Version': '2022-06-28',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch Notion page: ${response.statusText}`);
-        }
-
-        // Parse the response
-        const data = await response.json();
-        
-        // Use the unofficial client to get the compatible format that react-notion-x expects
-        // Since direct API doesn't return ExtendedRecordMap, we need to transform it
-        // For simplicity here, we'll use the NotionAPI from notion-client
-        const { NotionAPI } = await import('notion-client');
+        // Use the unofficial client which doesn't require CORS
         const notion = new NotionAPI();
         
-        // Fetch the page with the unofficial client (which returns the correct format)
+        // Fetch the page with the unofficial client
         const pageData = await notion.getPage(pageId);
         
         setRecordMap(pageData);
@@ -69,7 +51,7 @@ export const NotionPage: React.FC<NotionPageProps> = ({
     if (pageId) {
       fetchNotionPage();
     }
-  }, [pageId, token]);
+  }, [pageId]);
 
   // Show loading state
   if (loading) {
