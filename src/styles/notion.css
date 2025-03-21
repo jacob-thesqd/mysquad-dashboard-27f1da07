@@ -1,0 +1,127 @@
+
+/* Custom Notion Styling */
+.notion-app {
+  --notion-max-width: 100%;
+  font-family: inherit;
+}
+
+.notion-page {
+  padding: 0;
+  width: 100%;
+}
+
+.notion-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.notion-h1 {
+  font-size: 1.75rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.notion-h2 {
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.notion-h3 {
+  font-size: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.notion-text {
+  padding: 0.25rem 0;
+  line-height: 1.5;
+}
+
+.notion-list {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.notion-list-item {
+  padding: 0.25rem 0;
+}
+
+.notion-toggle {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.dark .notion-toggle {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.notion-asset-wrapper {
+  margin: 1rem 0;
+}
+
+.notion-code {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-family: monospace;
+}
+
+.dark .notion-code {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.notion-callout {
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+/* Make sure nested lists are properly indented */
+.notion-list .notion-list {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Improve table styling */
+.notion-table {
+  margin: 1rem 0;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.notion-table-cell {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+}
+
+.dark .notion-table-cell {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.notion-table-header {
+  background-color: rgba(0, 0, 0, 0.03);
+  font-weight: 600;
+}
+
+.dark .notion-table-header {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Improve callout styling */
+.notion-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.notion-callout-text {
+  flex: 1;
+}

@@ -1,24 +1,12 @@
 
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { inject } from '@vercel/analytics';
+import './styles/notion.css'; // Import our Notion styles
 
-inject({
-    mode: 'production', // Use 'production' mode to ensure analytics are sent
-    debug: true, // You can set this to false in production
-    beforeSend: (event) => {
-      // Optional: modify or filter events before they're sent
-      return event;
-    },
-  });
-
-// Add error handling for the root element
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Root element not found');
-
-createRoot(rootElement).render(
-  <>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <App />
-  </>
+  </React.StrictMode>
 );
