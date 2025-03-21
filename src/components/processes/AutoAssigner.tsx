@@ -21,7 +21,7 @@ export const AutoAssigner = () => {
       )}
       
       <iframe 
-        src="https://church-media-squad.notion.site/ebd/1bce83f731f6808a80a6e861e59f4a25" 
+        src="https://thesqd.notion.site/ebd/1bbe83f731f6802eab2cdb2c9038c658" 
         width="100%" 
         height="900" 
         frameBorder="0" 
