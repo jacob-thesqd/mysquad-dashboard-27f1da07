@@ -13,8 +13,8 @@ interface AutoAssignerDocsResponse {
 export function useAutoAssignerDocs() {
   const fetchDocumentation = async (): Promise<string> => {
     try {
-      const response = await fetch("https://sis1.thesqd.com/webhook/8136931f-c2d6-4350-adce-49db3b8b3863");
       console.log('Fetching documentation');
+      const response = await fetch("https://sis1.thesqd.com/webhook/8136931f-c2d6-4350-adce-49db3b8b3863");
         
       if (!response.ok) {
         throw new Error(`Failed to fetch documentation: ${response.status}`);
@@ -40,7 +40,10 @@ export function useAutoAssignerDocs() {
     queryFn: fetchDocumentation,
     staleTime: CACHE_TIME,
     gcTime: CACHE_TIME,
-    retry: 2
+    retry: 2,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false
   });
 
   return {

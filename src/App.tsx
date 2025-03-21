@@ -17,16 +17,28 @@ import Login from "./pages/Login";
 import { useEffect } from "react";
 import { useAutoAssignerDocs } from "./hooks/useAutoAssignerDocs";
 
-// Initialize QueryClient
-const queryClient = new QueryClient();
+// Initialize QueryClient with default options for better caching
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 2 * 60 * 60 * 1000, // 2 hours
+    },
+  },
+});
 
-// Preload component to fetch documentation in the background
+// Preload component to fetch documentation in the background only once
 const PreloadData = () => {
   const { refetch } = useAutoAssignerDocs();
   
   useEffect(() => {
-    // Prefetch the data in the background
-    refetch();
+    // Prefetch the data in the background only once on initial load
+    const cachedData = queryClient.getQueryData(["autoAssignerDocs"]);
+    if (!cachedData) {
+      refetch();
+    }
   }, [refetch]);
   
   return null;
