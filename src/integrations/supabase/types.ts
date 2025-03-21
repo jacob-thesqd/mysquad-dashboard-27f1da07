@@ -2058,7 +2058,8 @@ export type Database = {
           clickup_id: string | null
           completion_target: string | null
           created_at: string | null
-          dbox_folder_created: boolean | null
+          dropbox_folder_id: string | null
+          dropbox_folder_path: string | null
           edit_id: string | null
           editable: boolean | null
           end_time: string | null
@@ -2079,7 +2080,8 @@ export type Database = {
           clickup_id?: string | null
           completion_target?: string | null
           created_at?: string | null
-          dbox_folder_created?: boolean | null
+          dropbox_folder_id?: string | null
+          dropbox_folder_path?: string | null
           edit_id?: string | null
           editable?: boolean | null
           end_time?: string | null
@@ -2100,7 +2102,8 @@ export type Database = {
           clickup_id?: string | null
           completion_target?: string | null
           created_at?: string | null
-          dbox_folder_created?: boolean | null
+          dropbox_folder_id?: string | null
+          dropbox_folder_path?: string | null
           edit_id?: string | null
           editable?: boolean | null
           end_time?: string | null

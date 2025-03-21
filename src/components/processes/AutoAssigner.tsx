@@ -5,7 +5,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ReactMarkdown from "react-markdown";
-import { notionBlocksToMarkdown } from "@/utils/notionParser";
 
 const AutoAssigner = () => {
   const [loading, setLoading] = useState(true);
@@ -23,8 +22,7 @@ const AutoAssigner = () => {
         }
         
         const data = await response.json();
-        const markdownContent = notionBlocksToMarkdown(data);
-        setMarkdown(markdownContent);
+        setMarkdown(data.markdown || "");
         setError(null);
       } catch (err) {
         console.error("Error fetching documentation:", err);
@@ -87,10 +85,12 @@ const AutoAssigner = () => {
             blockquote: ({ node, ...props }) => (
               <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-4" {...props} />
             ),
-            code: ({ node, inline, ...props }) => 
-              inline ? 
-                <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm" {...props} /> : 
-                <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md overflow-x-auto my-4"><code {...props} /></pre>,
+            code: ({ node, className, ...props }) => (
+              <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm" {...props} />
+            ),
+            pre: ({ node, ...props }) => (
+              <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md overflow-x-auto my-4" {...props} />
+            ),
             hr: ({ node, ...props }) => <hr className="my-6 border-t border-gray-300 dark:border-gray-600" {...props} />,
           }}
         >
