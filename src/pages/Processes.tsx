@@ -27,15 +27,15 @@ const Processes = () => {
 
         <Card className="p-6">
           <Tabs defaultValue="auto-assigner" onValueChange={setActiveProcess} value={activeProcess}>
-            <TabsList className="mb-6">
+            <TabsList className="mb-6 w-full sm:w-auto">
               {processes.map((process) => (
-                <TabsTrigger key={process.id} value={process.id}>
+                <TabsTrigger key={process.id} value={process.id} className="px-4 py-2">
                   {process.name}
                 </TabsTrigger>
               ))}
             </TabsList>
             
-            <TabsContent value="auto-assigner">
+            <TabsContent value="auto-assigner" className="mt-6">
               <AutoAssigner />
             </TabsContent>
             

@@ -129,7 +129,7 @@ function blockToMarkdown(block: NotionBlock, listNumber: number): string {
       return `<details><summary>${formatRichText(block.toggle.rich_text)}</summary></details>`;
       
     case 'code':
-      return `\`\`\`${block.code.language}\n${formatRichText(block.code.rich_text)}\n\`\`\``;
+      return `\`\`\`${block.code.language || ''}\n${formatRichText(block.code.rich_text)}\n\`\`\``;
       
     case 'quote':
       return `> ${formatRichText(block.quote.rich_text)}`;
@@ -141,7 +141,7 @@ function blockToMarkdown(block: NotionBlock, listNumber: number): string {
       return '*[Table of Contents]*';
       
     case 'image':
-      const caption = block.image.caption ? ` - ${formatRichText(block.image.caption)}` : '';
+      const caption = block.image.caption?.length ? ` - ${formatRichText(block.image.caption)}` : '';
       const url = block.image.type === 'external' ? block.image.external.url : block.image.file.url;
       return `![Image${caption}](${url})`;
       
@@ -161,27 +161,29 @@ function formatRichText(richTextArray: NotionText[]): string {
   return richTextArray.map(textBlock => {
     let formattedText = textBlock.plain_text;
     
-    if (textBlock.annotations.bold) {
-      formattedText = `**${formattedText}**`;
-    }
-    
-    if (textBlock.annotations.italic) {
-      formattedText = `*${formattedText}*`;
+    // Apply formatting in specific order to handle nested styles correctly
+    if (textBlock.annotations.code) {
+      formattedText = `\`${formattedText}\``;
     }
     
     if (textBlock.annotations.strikethrough) {
       formattedText = `~~${formattedText}~~`;
     }
     
-    if (textBlock.annotations.code) {
-      formattedText = `\`${formattedText}\``;
-    }
-    
     if (textBlock.annotations.underline) {
-      // Markdown doesn't have underline, so we use HTML
+      // Using HTML since Markdown doesn't have underline
       formattedText = `<u>${formattedText}</u>`;
     }
     
+    if (textBlock.annotations.italic) {
+      formattedText = `*${formattedText}*`;
+    }
+    
+    if (textBlock.annotations.bold) {
+      formattedText = `**${formattedText}**`;
+    }
+    
+    // Apply link last to avoid interfering with other formatting
     if (textBlock.href) {
       formattedText = `[${formattedText}](${textBlock.href})`;
     }
