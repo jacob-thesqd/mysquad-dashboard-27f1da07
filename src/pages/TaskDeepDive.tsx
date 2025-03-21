@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ const TaskDeepDive = () => {
   const [statusAfterFilter, setStatusAfterFilter] = useState<string>("");
   const [statusBeforeFilter, setStatusBeforeFilter] = useState<string>("");
   
+  // Fetch possible statuses for dropdowns
   const { data: statusOptions } = useQuery({
     queryKey: ["statusOptions"],
     queryFn: async () => {
@@ -56,6 +58,7 @@ const TaskDeepDive = () => {
     }
   });
 
+  // Fetch event types directly from aa_decision_log table
   const { data: eventTypes } = useQuery({
     queryKey: ["eventTypes"],
     queryFn: async () => {
@@ -70,6 +73,7 @@ const TaskDeepDive = () => {
         throw new Error(error.message);
       }
       
+      // Get unique types
       const types = new Set(data.map(item => item.type));
       return Array.from(types);
     }
@@ -78,6 +82,7 @@ const TaskDeepDive = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["aaDecisionLog", identifier, searchType, typeFilter, statusAfterFilter, statusBeforeFilter],
     queryFn: async () => {
+      // Determine the appropriate p_identifier based on filters and search type
       const p_identifier = identifier || typeFilter || statusAfterFilter || statusBeforeFilter || "";
       const p_search_type = identifier ? searchType : typeFilter ? "type" : statusAfterFilter ? "status_after" : statusBeforeFilter ? "status_before" : "all";
       
@@ -93,14 +98,16 @@ const TaskDeepDive = () => {
       
       return data as DecisionLogItem[];
     },
-    enabled: false
+    enabled: false // Don't run query on component mount, only when user submits
   });
 
+  // Filter out duplicate entries based on all fields except created_at
   const uniqueData = useMemo(() => {
     if (!data) return [];
     
     const seen = new Map();
     return data.filter(item => {
+      // Create a key based on all fields except created_at
       const key = JSON.stringify({
         task_id: item.task_id,
         account: item.account,
@@ -127,16 +134,19 @@ const TaskDeepDive = () => {
     await refetch();
   };
 
+  // Apply additional filters to data if needed
   const filteredData = useMemo(() => {
     if (!uniqueData) return [];
     
     return uniqueData.filter(item => {
       let matches = true;
       
+      // Apply type filter if set
       if (typeFilter && typeFilter !== "all_types" && item.type !== typeFilter) {
         matches = false;
       }
       
+      // Apply status_after filter if set
       if (statusAfterFilter && 
           statusAfterFilter !== "all_status_after" && 
           (!item.metadata?.status_after || 
@@ -144,6 +154,7 @@ const TaskDeepDive = () => {
         matches = false;
       }
       
+      // Apply status_before filter if set
       if (statusBeforeFilter && 
           statusBeforeFilter !== "all_status_before" && 
           (!item.metadata?.status_before || 
@@ -155,6 +166,7 @@ const TaskDeepDive = () => {
     });
   }, [uniqueData, typeFilter, statusAfterFilter, statusBeforeFilter]);
 
+  // Convert object keys to sentence case
   const toSentenceCase = (key: string): string => {
     return key
       .split('_')
@@ -162,6 +174,7 @@ const TaskDeepDive = () => {
       .join(' ');
   };
 
+  // Format metadata object with sentence case keys and handle nested objects/arrays
   const formatMetadata = (metadata: any): any => {
     if (!metadata) return {};
     
@@ -169,12 +182,15 @@ const TaskDeepDive = () => {
     Object.entries(metadata).forEach(([key, value]) => {
       const newKey = toSentenceCase(key);
       
+      // Handle nested objects
       if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
         formattedMetadata[newKey] = formatMetadata(value);
       } 
+      // Handle arrays
       else if (Array.isArray(value)) {
         formattedMetadata[newKey] = value;
       }
+      // Handle primitives
       else {
         formattedMetadata[newKey] = value;
       }
@@ -233,6 +249,7 @@ const TaskDeepDive = () => {
   const formatTimeCentral = (dateString: string) => {
     try {
       const date = new Date(dateString);
+      // Format in Central Time (UTC-6)
       return format(date, "MMM d, yyyy 'at' h:mm:ss a 'CT'");
     } catch (e) {
       return "Invalid date";
@@ -249,6 +266,7 @@ const TaskDeepDive = () => {
 
   const hasActiveFilters = typeFilter || statusAfterFilter || statusBeforeFilter;
 
+  // Effect to trigger search when filters change
   useEffect(() => {
     if (typeFilter || statusAfterFilter || statusBeforeFilter) {
       refetch();
@@ -269,7 +287,7 @@ const TaskDeepDive = () => {
               placeholder="Enter Task ID or Account Number"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              className="w-2/3"
+              className="w-2/3" // Made search bar less wide
             />
             <Select value={searchType} onValueChange={setSearchType}>
               <SelectTrigger className="w-40">
@@ -281,11 +299,12 @@ const TaskDeepDive = () => {
                 <SelectItem value="account">Account</SelectItem>
               </SelectContent>
             </Select>
-            <Button type="submit" className="w-32">Search</Button>
+            <Button type="submit" className="w-32">Search</Button> {/* Made button slightly wider */}
           </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          {/* Type Filter */}
           <div>
             <Label htmlFor="type-filter">Event Type</Label>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -301,6 +320,7 @@ const TaskDeepDive = () => {
             </Select>
           </div>
           
+          {/* Status After Filter */}
           <div>
             <Label htmlFor="status-after-filter">Status After</Label>
             <Select value={statusAfterFilter} onValueChange={setStatusAfterFilter}>
@@ -316,6 +336,7 @@ const TaskDeepDive = () => {
             </Select>
           </div>
           
+          {/* Status Before Filter */}
           <div>
             <Label htmlFor="status-before-filter">Status Before</Label>
             <Select value={statusBeforeFilter} onValueChange={setStatusBeforeFilter}>
@@ -399,6 +420,7 @@ const TaskDeepDive = () => {
                 <div className="relative ml-6 border-l-2 border-border pl-8 pb-10">
                   {filteredData.map((item, index) => (
                     <div key={index} className="mb-8 relative">
+                      {/* Timeline dot */}
                       <div className="absolute -left-[46px] mt-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background mr-2">
                         {getItemIcon(item.type)}
                       </div>
@@ -431,7 +453,7 @@ const TaskDeepDive = () => {
                             
                             {item.aa_markdown_narrative && (
                               <div className="text-sm mt-2 p-3 bg-muted rounded-md">
-                                <ReactMarkdown>
+                                <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none">
                                   {item.aa_markdown_narrative}
                                 </ReactMarkdown>
                               </div>
@@ -504,6 +526,7 @@ const TaskDeepDive = () => {
                                   {Object.entries(formatMetadata(item.metadata))
                                     .filter(([key, value]) => value !== null)
                                     .map(([key, value]) => {
+                                      // Handle arrays and objects specially
                                       if (Array.isArray(value)) {
                                         return (
                                           <div key={key} className="p-2 bg-muted rounded col-span-2">

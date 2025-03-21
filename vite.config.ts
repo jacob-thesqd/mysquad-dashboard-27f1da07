@@ -24,22 +24,11 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  define: {
-    // Add process.env shim for packages that depend on it
-    'process.env': {
-      NODE_ENV: JSON.stringify(mode),
-    },
-    // Add global process for notion-client
-    'global': {},
-  },
   build: {
+    // This helps with Vercel analytics integration
     rollupOptions: {
       // Make sure Vercel packages don't get bundled/optimized out
       external: [],
     },
-  },
-  optimizeDeps: {
-    // Exclude Node.js specific modules that cause browser compatibility issues
-    exclude: ['dns', 'fs', 'net', 'tls', 'child_process'],
   },
 }));

@@ -12,27 +12,9 @@ import DataPage from "./pages/DataPage";
 import Dashboard from "./pages/Dashboard";
 import Audits from "./pages/Audits";
 import TaskDeepDive from "./pages/TaskDeepDive";
-import Processes from "./pages/Processes";
 import Login from "./pages/Login";
 
-// Import all required styles
-import 'react-notion-x/src/styles.css';
-import 'prismjs/themes/prism-tomorrow.css';
-import 'katex/dist/katex.min.css';
-import './styles/notion.css';
-
-// Initialize QueryClient with default options for better caching
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      staleTime: 2 * 60 * 60 * 1000, // 2 hours
-      retry: 1, // Reduce retries to minimize failed network requests
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -50,7 +32,6 @@ const App = () => (
               <Route path="/deep-dive" element={<AppLayout><TaskDeepDive /></AppLayout>} />
               <Route path="/turnaround" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Turnaround Times</h1><p>Track task completion times and trends</p></div></AppLayout>} />
               <Route path="/scheduling" element={<AppLayout><div className="p-8"><h1 className="text-2xl font-bold mb-4">Scheduling</h1><p>Manage resource scheduling</p></div></AppLayout>} />
-              <Route path="/processes" element={<AppLayout><Processes /></AppLayout>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
