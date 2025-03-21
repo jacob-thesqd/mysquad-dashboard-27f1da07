@@ -6,7 +6,8 @@ import AutoAssigner from "@/components/processes/AutoAssigner";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAutoAssignerDocs } from "@/hooks/useAutoAssignerDocs";
+import { useNotionPage } from "@/hooks/useNotionPage";
+import { AUTO_ASSIGNER_PAGE_ID } from "@/lib/notion";
 
 const processes = [
   { id: "auto-assigner", name: "Auto-Assigner" },
@@ -16,7 +17,7 @@ const processes = [
 
 const Processes = () => {
   const [activeProcess, setActiveProcess] = useState("auto-assigner");
-  const { refetch } = useAutoAssignerDocs();
+  const { refetch } = useNotionPage(AUTO_ASSIGNER_PAGE_ID);
   useDocumentTitle("Processes");
 
   return (

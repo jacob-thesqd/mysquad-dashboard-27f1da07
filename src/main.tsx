@@ -2,6 +2,7 @@
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
+import './styles/notion.css'; // Add this import for Notion styles
 import { inject } from '@vercel/analytics';
 
 inject({

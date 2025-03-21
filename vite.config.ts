@@ -24,6 +24,16 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    // Add process.env shim for packages that depend on it (like notion-client)
+    'process.env': {},
+    'process.env.NODE_ENV': JSON.stringify(mode),
+    // Add global process for notion-client
+    'process': {
+      'env': {},
+      'nextTick': (callback: Function, ...args: any[]) => setTimeout(() => callback(...args), 0)
+    },
+  },
   build: {
     // This helps with Vercel analytics integration
     rollupOptions: {

@@ -1,0 +1,80 @@
+
+/* Custom styles for Notion renderer */
+.notion-container {
+  font-family: inherit;
+  line-height: 1.5;
+  width: 100%;
+}
+
+.notion-page {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* Override default styles for better integration with our UI */
+.notion-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.notion-h1 {
+  font-size: 1.875rem;
+}
+
+.notion-h2 {
+  font-size: 1.5rem;
+}
+
+.notion-h3 {
+  font-size: 1.25rem;
+}
+
+.notion-page-content {
+  width: 100%;
+  max-width: none;
+}
+
+.notion-asset-wrapper {
+  margin: 1rem 0;
+}
+
+.notion-callout {
+  border-radius: 0.375rem;
+}
+
+.notion-code {
+  background-color: hsl(var(--muted));
+  border-radius: 0.375rem;
+}
+
+.notion-bookmark {
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Fix dark mode compatibility */
+.dark .notion-title,
+.dark .notion-text,
+.dark .notion-h1,
+.dark .notion-h2,
+.dark .notion-h3 {
+  color: hsl(var(--foreground));
+}
+
+.dark .notion-page {
+  background: transparent;
+}
+
+.dark .notion-callout {
+  background-color: hsl(var(--muted));
+}
+
+.dark .notion-bookmark {
+  background-color: hsl(var(--card));
+}
+
+.dark .notion-code {
+  background-color: hsl(var(--muted));
+}
