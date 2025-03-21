@@ -29,7 +29,8 @@ export const AutoAssigner = () => {
         style={{ 
           display: isLoading ? "none" : "block",
           border: "none",
-          borderRadius: "4px"
+          borderRadius: "4px",
+          margin-right:"20px"
         }}
       />
     </div>
