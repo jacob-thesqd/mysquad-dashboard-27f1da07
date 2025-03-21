@@ -1,12 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { NotionAPI } from "notion-client";
 import { ExtendedRecordMap } from "notion-types";
-
-// Create a singleton NotionAPI instance with the integration token
-const notion = new NotionAPI({
-  authToken: "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"
-});
+import { notionApi } from "@/services/notionApi";
 
 export function useNotionPage(pageId: string) {
   const {
@@ -17,13 +12,15 @@ export function useNotionPage(pageId: string) {
     queryKey: ["notion-page", pageId],
     queryFn: async () => {
       try {
-        const response = await notion.getPage(pageId);
+        // Use our browser-compatible API service instead of notion-client directly
+        const response = await notionApi.getPage({ pageId });
         return response;
       } catch (error) {
         console.error("Error fetching Notion page:", error);
         throw error;
       }
     },
+    retry: 2, // Retry failed requests twice
   });
 
   return {

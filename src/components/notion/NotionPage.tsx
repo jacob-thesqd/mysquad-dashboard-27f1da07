@@ -2,13 +2,13 @@
 import React from "react";
 import { NotionRenderer } from "react-notion-x";
 import { ExtendedRecordMap } from "notion-types";
+
+// Import required CSS
 import "react-notion-x/src/styles.css";
-
-// Optionally include code syntax highlighting (required prismjs)
-// import 'prismjs/themes/prism-tomorrow.css'
-
-// Optionally include KaTeX support (required katex)
-// import 'katex/dist/katex.min.css'
+// Optional Prism syntax highlighting
+import 'prismjs/themes/prism-tomorrow.css';
+// Optional KaTeX math formula support
+import 'katex/dist/katex.min.css';
 
 interface NotionPageProps {
   recordMap: ExtendedRecordMap;
