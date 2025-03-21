@@ -37,7 +37,7 @@ const Processes = () => {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-0">
           <CardTitle>{currentProcess.name}</CardTitle>
           <CardDescription>{currentProcess.description}</CardDescription>
         </CardHeader>
