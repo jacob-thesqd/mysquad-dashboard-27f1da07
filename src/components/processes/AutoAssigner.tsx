@@ -23,7 +23,7 @@ export const AutoAssigner = () => {
       <iframe 
         src="https://church-media-squad.notion.site/ebd/1bce83f731f6808a80a6e861e59f4a25" 
         width="100%" 
-        height="600" 
+        height="800" 
         frameBorder="0" 
         allowFullScreen
         onLoad={handleIframeLoad}
