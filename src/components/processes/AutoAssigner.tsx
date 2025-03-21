@@ -1,49 +1,26 @@
 
-import React, { useEffect, useState } from "react";
-import { AUTO_ASSIGNER_PAGE_ID, getNotionPage } from "@/lib/notion";
+import React, { useState, useEffect } from "react";
+import { AUTO_ASSIGNER_PAGE_ID } from "@/lib/notion";
 import NotionPage from "@/components/notion/NotionPage";
+import { useNotionPage } from "@/hooks/useNotionPage";
+import AutoAssignerMarkdown from "./AutoAssignerMarkdown";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react"; 
 
 const AutoAssigner = () => {
-  const [recordMap, setRecordMap] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [useMarkdownFallback, setUseMarkdownFallback] = useState(false);
+  const { recordMap, loading, error } = useNotionPage(AUTO_ASSIGNER_PAGE_ID);
 
+  // If there's an error with Notion, use the markdown fallback
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        console.log("Fetching auto-assigner documentation...");
-        const data = await getNotionPage(AUTO_ASSIGNER_PAGE_ID);
-        
-        if (data) {
-          console.log("Auto-assigner documentation loaded successfully");
-          setRecordMap(data);
-          setError(null);
-        } else {
-          console.error("Failed to load documentation");
-          setError("Unable to load the documentation. Please try again later.");
-        }
-      } catch (err) {
-        console.error("Error in auto-assigner component:", err);
-        setError("Error loading documentation. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (error) {
+      console.log("Using markdown fallback due to Notion error:", error);
+      setUseMarkdownFallback(true);
+    }
+  }, [error]);
 
-    fetchData();
-  }, []);
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
+  if (useMarkdownFallback) {
+    return <AutoAssignerMarkdown />;
   }
 
   return <NotionPage recordMap={recordMap} loading={loading} error={error} />;

@@ -2,45 +2,44 @@
 import { useState, useEffect } from "react";
 import { getNotionPage } from "@/lib/notion";
 import { ExtendedRecordMap } from "notion-types";
+import { useQuery } from "@tanstack/react-query";
 
 export function useNotionPage(pageId: string) {
-  const [recordMap, setRecordMap] = useState<ExtendedRecordMap | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
   const fetchPage = async () => {
     try {
-      setLoading(true);
       console.log('Fetching Notion page:', pageId);
       const data = await getNotionPage(pageId);
       
-      if (data) {
-        console.log('Notion page fetched successfully');
-        setRecordMap(data);
-        setError(null);
-      } else {
-        setError("Failed to load Notion page");
+      if (!data) {
+        throw new Error("Failed to load Notion page");
       }
+      
+      console.log('Notion page fetched successfully');
+      return data;
     } catch (err) {
       console.error("Error fetching Notion page:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch Notion page");
-    } finally {
-      setLoading(false);
+      throw err;
     }
   };
 
-  useEffect(() => {
-    fetchPage();
-  }, [pageId]);
-
-  const refetch = () => {
-    fetchPage();
-  };
+  const { 
+    data: recordMap, 
+    isLoading: loading, 
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ["notionPage", pageId],
+    queryFn: fetchPage,
+    retry: 1,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false
+  });
 
   return {
     recordMap,
     loading,
-    error,
+    error: error ? (error instanceof Error ? error.message : "Failed to fetch Notion page") : null,
     refetch
   };
 }

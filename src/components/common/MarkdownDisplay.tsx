@@ -1,23 +1,17 @@
 
 import React from 'react';
-import { NotionRenderer } from 'react-notion-x';
-import { ExtendedRecordMap } from 'notion-types';
+import ReactMarkdown from 'react-markdown';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
-// Import styles for the Notion renderer
-import 'react-notion-x/src/styles.css';
-import 'prismjs/themes/prism-tomorrow.css';
-import 'katex/dist/katex.min.css';
-
-interface NotionPageProps {
-  recordMap: ExtendedRecordMap | null;
+interface MarkdownDisplayProps {
+  markdown: string;
   loading?: boolean;
   error?: string | null;
 }
 
-const NotionPage: React.FC<NotionPageProps> = ({ recordMap, loading, error }) => {
+const MarkdownDisplay: React.FC<MarkdownDisplayProps> = ({ markdown, loading, error }) => {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -44,27 +38,22 @@ const NotionPage: React.FC<NotionPageProps> = ({ recordMap, loading, error }) =>
     );
   }
 
-  if (!recordMap) {
+  if (!markdown) {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium">No documentation available</h3>
         <p className="text-muted-foreground mt-2">
-          The Notion page could not be loaded.
+          Documentation content could not be loaded.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="notion-container">
-      <NotionRenderer 
-        recordMap={recordMap}
-        fullPage={false}
-        darkMode={false}
-        disableHeader={true}
-      />
+    <div className="prose dark:prose-invert max-w-none">
+      <ReactMarkdown>{markdown}</ReactMarkdown>
     </div>
   );
 };
 
-export default NotionPage;
+export default MarkdownDisplay;

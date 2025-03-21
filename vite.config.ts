@@ -28,34 +28,18 @@ export default defineConfig(({ mode }) => ({
     // Add process.env shim for packages that depend on it
     'process.env': {
       NODE_ENV: JSON.stringify(mode),
-      // Add other environment variables as needed
-      REACT_APP_NOTION_API_BASE_URL: undefined,
-      REACT_APP_NOTION_TOKEN: undefined,
-      REACT_APP_NOTION_ACTIVE_USER: undefined,
-      REACT_APP_NOTION_USER_TIMEZONE: undefined
     },
-    // Add global process for notion-client with more complete shims
+    // Add global process for notion-client
     'global': {},
-    'process': {
-      'browser': true,
-      'env': {
-        NODE_ENV: JSON.stringify(mode),
-        REACT_APP_NOTION_API_BASE_URL: undefined,
-        REACT_APP_NOTION_TOKEN: undefined,
-        REACT_APP_NOTION_ACTIVE_USER: undefined,
-        REACT_APP_NOTION_USER_TIMEZONE: undefined
-      },
-      'nextTick': (callback: Function, ...args: any[]) => setTimeout(() => callback(...args), 0),
-      'version': '',
-      'versions': { node: '16.0.0' },
-      'platform': 'browser'
-    },
   },
   build: {
-    // This helps with Vercel analytics integration
     rollupOptions: {
       // Make sure Vercel packages don't get bundled/optimized out
       external: [],
     },
+  },
+  optimizeDeps: {
+    // Exclude Node.js specific modules that cause browser compatibility issues
+    exclude: ['dns', 'fs', 'net', 'tls', 'child_process'],
   },
 }));
