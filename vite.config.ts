@@ -24,6 +24,21 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    // Provide necessary Node.js globals for the notion-client
+    global: 'globalThis',
+    process: {
+      env: {},
+    },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
   build: {
     // This helps with Vercel analytics integration
     rollupOptions: {

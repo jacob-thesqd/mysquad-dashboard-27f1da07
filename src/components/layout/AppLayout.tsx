@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarHeader, SidebarSection, SidebarItem, SidebarFooter } from "@/components/ui/collapsible-sidebar";
-import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, Waves, Hourglass, CalendarDays } from "lucide-react";
+import { MapPin, Settings, ChevronsUpDown, AudioWaveform, Award, Package, SunMoon, LogOut, SquareChartGantt, Waves, Hourglass, CalendarDays, Cog } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -108,6 +108,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 onClick={() => handleNavigation("/deep-dive")}
               >
                 Task Deep Dive
+              </SidebarItem>
+              <SidebarItem 
+                icon={Cog} 
+                active={location.pathname === "/processes"} 
+                onClick={() => handleNavigation("/processes")}
+              >
+                Processes
               </SidebarItem>
               <SidebarItem 
                 icon={Hourglass} 
