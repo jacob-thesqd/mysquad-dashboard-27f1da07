@@ -2072,6 +2072,7 @@ export type Database = {
           project_type: number | null
           raw_data: Json | null
           start_time: string
+          task_content: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -2094,6 +2095,7 @@ export type Database = {
           project_type?: number | null
           raw_data?: Json | null
           start_time: string
+          task_content?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -2116,6 +2118,7 @@ export type Database = {
           project_type?: number | null
           raw_data?: Json | null
           start_time?: string
+          task_content?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
