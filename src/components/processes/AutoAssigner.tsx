@@ -31,8 +31,6 @@ export const AutoAssigner = () => {
           display: isLoading ? "none" : "block",
           border: "none",
           borderRadius: "4px",
-          width: "calc(100% + 20px)", // Compensate for negative margin
-          maxWidth: "calc(100% + 20px)",
           position: "relative",
           overflow: "hidden"
         }}
