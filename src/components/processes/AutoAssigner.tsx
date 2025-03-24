@@ -31,8 +31,7 @@ export const AutoAssigner = () => {
           display: isLoading ? "none" : "block",
           border: "none",
           borderRadius: "4px",
-          marginTop: "-20px",  // Crop top whitespace
-          marginLeft: "-20px", // Crop left whitespace
+          marginLeft: "-40px", // Crop left whitespace
           width: "calc(100% + 20px)", // Compensate for negative margin
           maxWidth: "calc(100% + 20px)",
           position: "relative",
